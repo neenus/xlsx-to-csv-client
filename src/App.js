@@ -20,18 +20,22 @@ import {
   KeyboardDatePicker,
   MuiPickersUtilsProvider
 } from "@material-ui/pickers";
+import useTitle from "./useTitle";
 import axios from "axios";
+import "./App.css";
 
 function Copyright() {
   return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
+    <footer className="footer">
+      <Typography variant="body2" color="textSecondary" align="center">
+        {"Copyright © "}
+        <Link color="inherit" href="https://nraccounting.ca">
+          NR Accounting & Business Advisors Inc.
+        </Link>{" "}
+        {new Date().getFullYear()}
+        {"."}
+      </Typography>
+    </footer>
   );
 }
 
@@ -78,7 +82,8 @@ const useStyles = makeStyles(theme => ({
   }
 }));
 
-export default function SignIn() {
+export default function UploadForm() {
+  useTitle("Excel to CSV Converter");
   const classes = useStyles();
   const [nextInvoiceNumber, setNextInvoiceNumber] = React.useState("");
   const [selectedDate, setSelectedDate] = React.useState(null);
@@ -157,7 +162,7 @@ export default function SignIn() {
             required
             fullWidth
             id="nextInvoiceNumber"
-            label="Next Invoice Number"
+            label="Last Invoice Number from QBO"
             name="nextInvoiceNumber"
             type="number"
             autoFocus
@@ -166,13 +171,13 @@ export default function SignIn() {
           />
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
             <KeyboardDatePicker
-              placeholder="MM/DD/YYYY"
+              placeholder="YYYY/MM/DD"
               margin="normal"
               inputVariant="outlined"
               fullWidth
               id="date-picker-dialog"
               label="Invoice Date"
-              format="MM/dd/yyyy"
+              format="yyyy/MM/dd"
               value={selectedDate}
               onChange={handleDateChange}
               KeyboardButtonProps={{
