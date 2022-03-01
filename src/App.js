@@ -8,8 +8,10 @@ import {
   Typography,
   Container,
   LinearProgress,
-  Paper
+  Paper,
+  CircularProgress
 } from "@material-ui/core";
+import green from "@material-ui/core/colors/green";
 import Alert from "@material-ui/lab/Alert";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import CloudUploadIcon from "@material-ui/icons/CloudUpload";
@@ -79,6 +81,14 @@ const useStyles = makeStyles(theme => ({
   },
   subtitleBold: {
     fontWeight: "bold"
+  },
+  btnProgress: {
+    color: green[500],
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    marginTop: -12,
+    marginLeft: -12
   }
 }));
 
@@ -194,8 +204,13 @@ export default function UploadForm() {
             variant="contained"
             color="primary"
             className={classes.submit}
+            disabled={loading}
+            loading={loading}
           >
             Submit
+            {loading && (
+              <CircularProgress size={24} className={classes.btnProgress} />
+            )}
           </Button>
           <Button
             fullWidth
