@@ -25,6 +25,7 @@ import {
 import useTitle from "./useTitle";
 import axios from "axios";
 import "./App.css";
+import SnackbarComponent from "./components/Snackbar.component";
 
 function Copyright() {
   return (
@@ -101,7 +102,10 @@ export default function UploadForm() {
   const [error, setError] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
-  const fileInputRef = React.createRef("");
+  const fileInputRef = React.useRef("");
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [severity, setSeverity] = React.useState("success");
+  const [message, setMessage] = React.useState("");
 
   const handleDateChange = date => {
     setSelectedDate(date);
@@ -117,7 +121,7 @@ export default function UploadForm() {
     setProgress(0);
     setError(false);
     setLoading(false);
-    setFile(null);
+    // setFile(null);
     fileInputRef.current.value = "";
   };
 
@@ -127,27 +131,57 @@ export default function UploadForm() {
     setError(null);
     setFile(null);
     const formData = new FormData();
-    formData.append("nextInvoiceNumber", nextInvoiceNumber);
-    formData.append("date", selectedDate);
-    formData.append("file", fileInputRef.current.files[0]);
+    let file = fileInputRef.current.files[0];
+    if (nextInvoiceNumber && selectedDate && file) {
+      formData.append("nextInvoiceNumber", nextInvoiceNumber);
+      formData.append("date", selectedDate);
+      formData.append("file", file);
 
-    const baseUrl = `${process.env.REACT_APP_API_BASE_URL}/convert`;
+      const baseUrl = `${process.env.REACT_APP_API_BASE_URL}/convert`;
 
-    try {
-      const response = await axios.post(baseUrl, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      try {
+        const response = await axios.post(baseUrl, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        setLoading(false);
+        setSnackbarOpen(true);
+        setSeverity("success");
+        setMessage("File uploaded & converted successfully.");
+        setFile(response.data.outputFile);
+        resetForm();
+      } catch (error) {
+        setError(error.message);
+        setLoading(false);
+        setSnackbarOpen(true);
+        setSeverity("error");
+        if (error.response.status === 400) {
+          setMessage(
+            "Bad request, please input invoice number, date and a valid file."
+          );
+        } else if (error.response.status === 500) {
+          setMessage("Internal server error, please try again later.");
+        } else {
+          setMessage(
+            "Something went wrong, please contact your administrator."
+          );
         }
-      });
+        console.log(error.message);
+      }
+    } else {
+      setError(true);
       setLoading(false);
-      setFile(response.data.outputFile);
-    } catch (error) {
-      setError(error.message);
-      setLoading(false);
-      console.log(error.message);
+      setSnackbarOpen(true);
+      setSeverity("error");
+      setMessage(
+        "Bad request, please input invoice number, date and a valid file."
+      );
     }
+  };
 
-    // resetForm();
+  const handleClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -160,6 +194,12 @@ export default function UploadForm() {
         <Typography component="h1" variant="h5">
           Upload Excel File
         </Typography>
+        <SnackbarComponent
+          open={snackbarOpen}
+          severity={severity}
+          message={message}
+          onClose={handleClose}
+        />
         <form
           id="form"
           className={classes.form}
@@ -227,11 +267,11 @@ export default function UploadForm() {
             <LinearProgress variant="indeterminate" value={progress} />
           )}
         </div>
-        {error && (
+        {/* {error && (
           <Paper className={classes.output} variant="elevation" elevation={5}>
             <Alert severity="error">{error}</Alert>
           </Paper>
-        )}
+        )} */}
         {file && (
           <Paper variant="elevation" elevation={5} className={classes.output}>
             <Alert severity="success">File created successfuly</Alert>
