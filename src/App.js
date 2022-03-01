@@ -99,7 +99,7 @@ export default function UploadForm() {
   const [nextInvoiceNumber, setNextInvoiceNumber] = React.useState("");
   const [selectedDate, setSelectedDate] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState(false);
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
   const fileInputRef = React.useRef("");
@@ -119,7 +119,7 @@ export default function UploadForm() {
     setSelectedDate(null);
     setNextInvoiceNumber("");
     setProgress(0);
-    setError(false);
+    setErrorMessage(false);
     setLoading(false);
     // setFile(null);
     fileInputRef.current.value = "";
@@ -128,7 +128,7 @@ export default function UploadForm() {
   const handleSubmit = async event => {
     event.preventDefault();
     setLoading(true);
-    setError(null);
+    setErrorMessage(null);
     setFile(null);
     const formData = new FormData();
     let file = fileInputRef.current.files[0];
@@ -152,14 +152,12 @@ export default function UploadForm() {
         setFile(response.data.outputFile);
         resetForm();
       } catch (error) {
-        setError(error.message);
+        setErrorMessage(error.message);
         setLoading(false);
         setSnackbarOpen(true);
         setSeverity("error");
         if (error.response.status === 400) {
-          setMessage(
-            "Bad request, please input invoice number, date and a valid file."
-          );
+          setMessage(`Request faild with status code ${errorMessage}.`);
         } else if (error.response.status === 500) {
           setMessage("Internal server error, please try again later.");
         } else {
@@ -170,7 +168,7 @@ export default function UploadForm() {
         console.log(error.message);
       }
     } else {
-      setError(true);
+      setErrorMessage(true);
       setLoading(false);
       setSnackbarOpen(true);
       setSeverity("error");
