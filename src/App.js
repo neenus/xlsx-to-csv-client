@@ -25,7 +25,8 @@ import {
 import useTitle from "./useTitle";
 import axios from "axios";
 import "./App.css";
-import SnackbarComponent from "./components/Snackbar.component";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function Copyright() {
   return (
@@ -103,17 +104,10 @@ export default function UploadForm() {
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
   const fileInputRef = React.useRef("");
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
-  const [severity, setSeverity] = React.useState("success");
-  const [message, setMessage] = React.useState("");
 
-  const handleDateChange = date => {
-    setSelectedDate(date);
-  };
+  const handleDateChange = date => setSelectedDate(date);
 
-  const resetForm = () => {
-    resetState();
-  };
+  const resetForm = () => resetState();
 
   const resetState = () => {
     setSelectedDate(null);
@@ -121,7 +115,6 @@ export default function UploadForm() {
     setProgress(0);
     setErrorMessage(false);
     setLoading(false);
-    // setFile(null);
     fileInputRef.current.value = "";
   };
 
@@ -146,22 +139,19 @@ export default function UploadForm() {
           }
         });
         setLoading(false);
-        setSnackbarOpen(true);
-        setSeverity("success");
-        setMessage("File uploaded & converted successfully.");
+        notify("success", "File uploaded & converted successfully.");
         setFile(response.data.outputFile);
         resetForm();
       } catch (error) {
         setErrorMessage(error.message);
         setLoading(false);
-        setSnackbarOpen(true);
-        setSeverity("error");
         if (error.response.status === 400) {
-          setMessage(`Request faild with status code ${errorMessage}.`);
+          notify("error", `Request faild with status code ${errorMessage}.`);
         } else if (error.response.status === 500) {
-          setMessage("Internal server error, please try again later.");
+          notify("error", "Internal server error, please try again later.");
         } else {
-          setMessage(
+          notify(
+            "error",
             "Something went wrong, please contact your administrator."
           );
         }
@@ -170,20 +160,29 @@ export default function UploadForm() {
     } else {
       setErrorMessage(true);
       setLoading(false);
-      setSnackbarOpen(true);
-      setSeverity("error");
-      setMessage(
+      notify(
+        "error",
         "Bad request, please input invoice number, date and a valid file."
       );
     }
   };
 
-  const handleClose = () => {
-    setSnackbarOpen(false);
-  };
+  // const handleClose = () => setSnackbarOpen(false);
+  const notify = (type, message) => toast[type](message);
 
   return (
     <Container component="main" maxWidth="sm">
+      <ToastContainer
+        position="top-right"
+        autoClose={false}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover={false}
+      />
       <CssBaseline />
       <div className={classes.paper}>
         <Avatar className={classes.avatar}>
@@ -192,12 +191,6 @@ export default function UploadForm() {
         <Typography component="h1" variant="h5">
           Upload Excel File
         </Typography>
-        <SnackbarComponent
-          open={snackbarOpen}
-          severity={severity}
-          message={message}
-          onClose={handleClose}
-        />
         <form
           id="form"
           className={classes.form}
@@ -265,11 +258,6 @@ export default function UploadForm() {
             <LinearProgress variant="indeterminate" value={progress} />
           )}
         </div>
-        {/* {error && (
-          <Paper className={classes.output} variant="elevation" elevation={5}>
-            <Alert severity="error">{error}</Alert>
-          </Paper>
-        )} */}
         {file && (
           <Paper variant="elevation" elevation={5} className={classes.output}>
             <Alert severity="success">File created successfuly</Alert>
