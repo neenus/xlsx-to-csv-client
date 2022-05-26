@@ -174,7 +174,7 @@ export default function UploadForm() {
     <Container component="main" maxWidth="sm">
       <ToastContainer
         position="top-right"
-        autoClose={false}
+        autoClose={6000}
         hideProgressBar={false}
         newestOnTop
         closeOnClick
