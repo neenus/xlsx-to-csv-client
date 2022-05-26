@@ -157,7 +157,7 @@ export default function UploadForm() {
         setSnackbarOpen(true);
         setSeverity("error");
         if (error.response.status === 400) {
-          setMessage(`Request faild with status code ${errorMessage}.`);
+          setMessage(error.response.data.msg);
         } else if (error.response.status === 500) {
           setMessage("Internal server error, please try again later.");
         } else {
@@ -234,7 +234,7 @@ export default function UploadForm() {
             />
           </MuiPickersUtilsProvider>
 
-          <input type="file" id="file" ref={fileInputRef} />
+          <input accept=".xlsx" type="file" id="file" ref={fileInputRef} />
 
           <Button
             type="submit"
