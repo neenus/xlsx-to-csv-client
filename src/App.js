@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useRef } from "react";
 import {
   Avatar,
   Button,
@@ -9,7 +9,8 @@ import {
   Container,
   LinearProgress,
   Paper,
-  CircularProgress
+  CircularProgress,
+  MenuItem
 } from "@material-ui/core";
 import green from "@material-ui/core/colors/green";
 import Alert from "@material-ui/lab/Alert";
@@ -90,22 +91,30 @@ const useStyles = makeStyles(theme => ({
     left: "50%",
     marginTop: -12,
     marginLeft: -12
+  },
+  uploadBtnBox: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: theme.spacing(2)
   }
 }));
 
 export default function UploadForm() {
   useTitle("Excel to CSV Converter");
   const classes = useStyles();
-  const [nextInvoiceNumber, setNextInvoiceNumber] = React.useState("");
-  const [selectedDate, setSelectedDate] = React.useState(null);
-  const [loading, setLoading] = React.useState(false);
-  const [errorMessage, setErrorMessage] = React.useState(false);
-  const [progress, setProgress] = React.useState(0);
-  const [file, setFile] = React.useState(null);
-  const fileInputRef = React.useRef("");
-  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
-  const [severity, setSeverity] = React.useState("success");
-  const [message, setMessage] = React.useState("");
+  const [nextInvoiceNumber, setNextInvoiceNumber] = useState("");
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [progress, setProgress] = useState(0);
+  const [file, setFile] = useState(null);
+  const fileInputRef = useRef("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [severity, setSeverity] = useState("success");
+  const [message, setMessage] = useState("");
+  const [uploadType, setUploadType] = useState("");
+  const [selectedFileName, setSelectedFileName] = useState("");
 
   const handleDateChange = date => {
     setSelectedDate(date);
@@ -119,8 +128,10 @@ export default function UploadForm() {
     setSelectedDate(null);
     setNextInvoiceNumber("");
     setProgress(0);
-    setErrorMessage(false);
+    setErrorMessage(null);
     setLoading(false);
+    setUploadType("");
+    setSelectedFileName("");
     // setFile(null);
     fileInputRef.current.value = "";
   };
@@ -132,10 +143,11 @@ export default function UploadForm() {
     setFile(null);
     const formData = new FormData();
     let file = fileInputRef.current.files[0];
-    if (nextInvoiceNumber && selectedDate && file) {
+    if (nextInvoiceNumber && selectedDate && file && uploadType) {
       formData.append("nextInvoiceNumber", nextInvoiceNumber);
       formData.append("date", selectedDate);
       formData.append("file", file);
+      formData.append("type", uploadType);
 
       const baseUrl = `${process.env.REACT_APP_API_BASE_URL}/convert`;
 
@@ -152,12 +164,12 @@ export default function UploadForm() {
         setFile(response.data.outputFile);
         resetForm();
       } catch (error) {
-        setErrorMessage(error.message);
+        setErrorMessage(error.response.data.msg);
         setLoading(false);
         setSnackbarOpen(true);
         setSeverity("error");
         if (error.response.status === 400) {
-          setMessage(error.response.data.msg);
+          setMessage(errorMessage);
         } else if (error.response.status === 500) {
           setMessage("Internal server error, please try again later.");
         } else {
@@ -168,12 +180,12 @@ export default function UploadForm() {
         console.log(error.message);
       }
     } else {
-      setErrorMessage(true);
+      // setErrorMessage(true);
       setLoading(false);
       setSnackbarOpen(true);
       setSeverity("error");
       setMessage(
-        "Bad request, please input invoice number, date and a valid file."
+        "Bad request, please input invoice number, date, a valid file and type of file."
       );
     }
   };
@@ -220,6 +232,7 @@ export default function UploadForm() {
           <MuiPickersUtilsProvider utils={DateFnsUtils}>
             <KeyboardDatePicker
               placeholder="YYYY/MM/DD"
+              required
               margin="normal"
               inputVariant="outlined"
               fullWidth
@@ -234,7 +247,35 @@ export default function UploadForm() {
             />
           </MuiPickersUtilsProvider>
 
-          <input accept=".xlsx" type="file" id="file" ref={fileInputRef} />
+          <TextField
+            variant="outlined"
+            margin="normal"
+            required
+            fullWidth
+            id="upload-type"
+            label="Upload Type"
+            name="upload-type"
+            select
+            onChange={e => setUploadType(e.target.value)}
+            value={uploadType}
+          >
+            <MenuItem value="proposed">Proposed sheet</MenuItem>
+            <MenuItem value="final">Final sheet</MenuItem>
+          </TextField>
+
+
+          <Box className={classes.uploadBtnBox} >
+            <input accept=".xlsx" type="file" id="file" ref={fileInputRef} className={classes.input} onChange={e => setSelectedFileName(e.target.files[0].name)} />
+            <label htmlFor="file">
+              <Button variant="contained" color="primary" component="span">
+                Select File
+              </Button>
+            </label>
+
+            <Typography variant="body2" color="textSecondary" component="p">
+              {selectedFileName ? selectedFileName : "No file selected"}
+            </Typography>
+          </Box>
 
           <Button
             type="submit"
@@ -243,7 +284,7 @@ export default function UploadForm() {
             color="primary"
             className={classes.submit}
             disabled={loading}
-            loading={loading}
+            loading={loading ? loading : undefined}
           >
             Submit
             {loading && (
@@ -289,10 +330,10 @@ export default function UploadForm() {
                 <span className={classes.subtitleBold}>File Size: </span>{" "}
                 {file.size} bytes
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="subtitle1" gutterBottom className={classes.subtitleBold}>
                 URL:{" "}
                 <Link href={file.url} download>
-                  {file.url}
+                  {file.name}
                 </Link>
               </Typography>
             </div>
