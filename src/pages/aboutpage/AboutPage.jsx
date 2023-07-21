@@ -1,4 +1,4 @@
-import { Container, Link, Typography } from "@material-ui/core";
+import { Container, Link, Typography } from "@mui/material";
 import useTitle from "../../useTitle";
 
 const AboutPage = () => {

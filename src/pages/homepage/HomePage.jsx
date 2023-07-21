@@ -12,19 +12,17 @@ import {
   Paper,
   CircularProgress,
   MenuItem,
-  CssBaseline
-} from "@material-ui/core";
+  CssBaseline,
+} from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 
-import green from "@material-ui/core/colors/green";
-import Alert from "@material-ui/lab/Alert";
-import CloudUploadIcon from "@material-ui/icons/CloudUpload";
-import { makeStyles } from "@material-ui/core/styles";
-import "date-fns";
-import DateFnsUtils from "@date-io/date-fns";
-import {
-  KeyboardDatePicker,
-  MuiPickersUtilsProvider
-} from "@material-ui/pickers";
+import green from "@mui/material/colors/green";
+import Alert from "@mui/material/Alert";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { makeStyles } from '@mui/styles';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import useTitle from "../../useTitle";
 import axios from "axios";
 import SnackbarComponent from "../../components/Snackbar.component";
@@ -108,7 +106,7 @@ export default function UploadForm() {
   const [uploadType, setUploadType] = useState("");
   const [selectedFileName, setSelectedFileName] = useState("");
 
-  const handleDateChange = date => setSelectedDate(date);
+  const handleDateChange = date => setSelectedDate(date.$d);
 
   const resetForm = () => resetState();
 
@@ -215,23 +213,17 @@ export default function UploadForm() {
             onChange={e => setNextInvoiceNumber(e.target.value)}
             value={nextInvoiceNumber}
           />
-          <MuiPickersUtilsProvider utils={DateFnsUtils}>
-            <KeyboardDatePicker
-              placeholder="YYYY/MM/DD"
-              required
-              margin="normal"
-              inputVariant="outlined"
-              fullWidth
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <DatePicker
               id="date-picker-dialog"
               label="Invoice Date"
-              format="yyyy/MM/dd"
+              format="YYYY/MM/DD"
               value={selectedDate}
               onChange={handleDateChange}
-              KeyboardButtonProps={{
-                "aria-label": "change date"
-              }}
+              showDaysOutsideCurrentMonth
+              slotProps={{ textField: { fullWidth: true } }}
             />
-          </MuiPickersUtilsProvider>
+          </LocalizationProvider>
 
           <TextField
             variant="outlined"
@@ -263,7 +255,7 @@ export default function UploadForm() {
             </Typography>
           </Box>
 
-          <Button
+          <LoadingButton
             type="submit"
             fullWidth
             variant="contained"
@@ -276,7 +268,7 @@ export default function UploadForm() {
             {loading && (
               <CircularProgress size={24} className={classes.btnProgress} />
             )}
-          </Button>
+          </LoadingButton>
           <Button
             fullWidth
             variant="contained"

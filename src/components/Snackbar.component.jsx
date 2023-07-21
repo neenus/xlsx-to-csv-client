@@ -1,9 +1,10 @@
-import { Snackbar } from "@material-ui/core";
-import MuiAlert from "@material-ui/lab/Alert";
+import { forwardRef } from "react";
+import { Snackbar, Typography } from "@mui/material";
+import MuiAlert from '@mui/material/Alert';
 
-const Alert = props => {
-  return <MuiAlert elevation={6} variant="filled" {...props} />;
-};
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const SnackbarComponent = ({ open, message, severity, onClose }) => {
   return (
