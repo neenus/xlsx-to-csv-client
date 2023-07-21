@@ -23,9 +23,9 @@ import { makeStyles } from '@mui/styles';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import useTitle from "../../useTitle";
+import useTitle from "../../hooks/useTitle";
 import axios from "axios";
-import SnackbarComponent from "../../components/Snackbar.component";
+import useToast from "../../hooks/useToast";
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -100,11 +100,9 @@ export default function UploadForm() {
   const [progress, setProgress] = useState(0);
   const [file, setFile] = useState(null);
   const fileInputRef = useRef("");
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [severity, setSeverity] = useState("success");
-  const [message, setMessage] = useState("");
   const [uploadType, setUploadType] = useState("");
   const [selectedFileName, setSelectedFileName] = useState("");
+  const { notify } = useToast();
 
   const handleDateChange = date => setSelectedDate(date.$d);
 
@@ -144,39 +142,27 @@ export default function UploadForm() {
           }
         });
         setLoading(false);
-        setSnackbarOpen(true);
-        setSeverity("success");
-        setMessage("File uploaded & converted successfully.");
+        notify({ message: "File uploaded & converted successfully.", type: "success" });
         setFile(response.data.outputFile);
         resetForm();
       } catch (error) {
         setErrorMessage(error.response.data.msg);
         setLoading(false);
-        setSnackbarOpen(true);
-        setSeverity("error");
         if (error.response.status === 400) {
-          setMessage(errorMessage);
+          notify({ message: errorMessage, type: "error" });
         } else if (error.response.status === 500) {
-          setMessage("Internal server error, please try again later.");
+          notify({ message: error.response.data.msg || "Internal server error, please try again later.", type: "error" });
         } else {
-          setMessage(
-            "Something went wrong, please contact your administrator."
-          );
+          notify({ message: "Something went wrong, please contact your administrator.", type: "error" });
         }
         console.log(error.message);
       }
     } else {
-      // setErrorMessage(true);
       setLoading(false);
-      setSnackbarOpen(true);
-      setSeverity("error");
-      setMessage(
-        "Bad request, please input invoice number, date, a valid file and type of file."
-      );
+      notify({ message: "Bad request, please input invoice number, date, a valid file and type of file.", type: "error" });
     }
   };
 
-  const handleClose = () => setSnackbarOpen(false);
 
   return (
     <Container component="main" maxWidth="sm">
@@ -188,12 +174,6 @@ export default function UploadForm() {
         <Typography component="h1" variant="h5">
           Upload Excel File
         </Typography>
-        <SnackbarComponent
-          open={snackbarOpen}
-          severity={severity}
-          message={message}
-          onClose={handleClose}
-        />
         <form
           id="form"
           className={classes.form}

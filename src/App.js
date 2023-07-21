@@ -9,10 +9,12 @@ import './App.css';
 import Home from './pages/homepage/HomePage';
 import About from './pages/aboutpage/AboutPage';
 import Footer from "./components/Footer.component";
+import { ToastContainer } from "react-toastify";
 
 const App = () => {
   return (
     <Router>
+      <ToastContainer />
       <div>
         <Switch>
           <Route exact path="/">
