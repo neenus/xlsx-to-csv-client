@@ -2,7 +2,7 @@ import {
   Box,
   Link,
   Typography,
-} from "@material-ui/core";
+} from "@mui/material";
 
 const Footer = () => {
   return (
