@@ -1,5 +1,5 @@
 import { Container, Link, Typography } from "@mui/material";
-import useTitle from "../../useTitle";
+import useTitle from "../../hooks/useTitle";
 
 const AboutPage = () => {
   useTitle("About Excel to CSV Converter");
