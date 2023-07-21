@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -16,7 +17,7 @@ const useToast = () => {
     theme: "colored",
   }
 
-  const notify = ({ message, type }) => toast[type](message, options);
+  const notify = useCallback(({ message, type }) => toast[type](message, options));
   return { notify };
 }
 
