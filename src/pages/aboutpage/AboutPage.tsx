@@ -11,10 +11,10 @@ const AboutPage = () => {
         </Link>
       </Typography>
       <Typography variant="body1" gutterBottom>
-        Build {process.env.REACT_APP_VERSION}
+        Build {import.meta.env.VITE_VERSION}
       </Typography>
     </Container>
-  )
+  );
 };
 
 export default AboutPage;
