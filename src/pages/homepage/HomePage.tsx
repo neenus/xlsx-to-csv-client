@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import "./homepage.styles.css";
 
 import {
   Avatar,
@@ -10,130 +11,62 @@ import {
   Container,
   LinearProgress,
   Paper,
-  CircularProgress,
   MenuItem,
-  CssBaseline,
+  CssBaseline
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 
-import green from "@mui/material/colors/green";
 import Alert from "@mui/material/Alert";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { makeStyles } from '@mui/styles';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import useTitle from "../../hooks/useTitle";
-import axios from "axios";
 import useToast from "../../hooks/useToast";
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: "100%"
-  },
-  paper: {
-    marginTop: theme.spacing(8),
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center"
-  },
-  avatar: {
-    margin: theme.spacing(1),
-    backgroundColor: theme.palette.secondary.main
-  },
-  form: {
-    width: "100%", // Fix IE 11 issue.
-    marginTop: theme.spacing(1),
-    padding: theme.spacing(2)
-  },
-  submit: {
-    margin: theme.spacing(3, 0, 2)
-  },
-  input: {
-    display: "none"
-  },
-  fileInputRef: {
-    width: "100%",
-    border: "1px solid #ccc",
-    padding: theme.spacing(2),
-    borderRadius: theme.shape.borderRadius,
-    fontSize: theme.typography.htmlFontSize,
-    fontFamily: theme.typography.fontFamily,
-    marginTop: theme.spacing(2)
-  },
-  output: {
-    width: "100%",
-    padding: theme.spacing(2)
-  },
-  subtitleBold: {
-    fontWeight: "bold"
-  },
-  btnProgress: {
-    color: green[500],
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    marginTop: -12,
-    marginLeft: -12
-  },
-  uploadBtnBox: {
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    columnGap: theme.spacing(2)
-  },
-  fabButton: {
-    position: 'absolute',
-    top: theme.spacing(2),
-    bottom: theme.spacing(2),
-    right: theme.spacing(2),
-  },
-}));
+import axios from "axios";
 
 export default function UploadForm() {
   useTitle("Excel to CSV Converter");
-  const classes = useStyles();
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState("");
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [progress, setProgress] = useState(0);
-  const [file, setFile] = useState(null);
-  const fileInputRef = useRef("");
-  const [uploadType, setUploadType] = useState("");
-  const [selectedFileName, setSelectedFileName] = useState("");
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [progress, setProgress] = useState<number>(0);
+  const [file, setFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadType, setUploadType] = useState<string>("");
+  const [selectedFileName, setSelectedFileName] = useState<string>("");
   const { notify } = useToast();
 
-  const handleDateChange = date => setSelectedDate(date.$d);
+  const handleDateChange = (date: any) => setSelectedDate(date.$d);
 
-  const resetForm = () => resetState();
-
-  const resetState = () => {
+  const resetForm = () => {
     setSelectedDate(null);
     setNextInvoiceNumber("");
     setProgress(0);
-    setErrorMessage(null);
+    setErrorMessage("");
     setLoading(false);
     setUploadType("");
     setSelectedFileName("");
-    // setFile(null);
-    fileInputRef.current.value = "";
+    fileInputRef.current?.value && (fileInputRef.current.value = "");
   };
 
-  const handleSubmit = async event => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
     setLoading(true);
-    setErrorMessage(null);
+    setErrorMessage("");
     setFile(null);
     const formData = new FormData();
-    let file = fileInputRef.current.files[0];
+    let file = fileInputRef.current?.files
+      ? fileInputRef.current.files[0]
+      : null;
     if (nextInvoiceNumber && selectedDate && file && uploadType) {
       formData.append("nextInvoiceNumber", nextInvoiceNumber);
       formData.append("date", selectedDate);
       formData.append("file", file);
       formData.append("type", uploadType);
 
-      const baseUrl = `${process.env.REACT_APP_API_BASE_URL}/convert`;
+      const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/convert`;
 
       try {
         const response = await axios.post(baseUrl, formData, {
@@ -142,44 +75,69 @@ export default function UploadForm() {
           }
         });
         setLoading(false);
-        notify({ message: "File uploaded & converted successfully.", type: "success" });
+        notify({
+          message: "File uploaded & converted successfully.",
+          type: "success"
+        });
         setFile(response.data.outputFile);
         resetForm();
-      } catch (error) {
-        setErrorMessage(error.response.data.msg);
+      } catch (error: error | any) {
+        setErrorMessage(error?.response?.data?.msg);
         setLoading(false);
-        if (error.response.status === 400) {
+        if (error?.response?.status === 400) {
           notify({ message: errorMessage, type: "error" });
-        } else if (error.response.status === 500) {
-          notify({ message: error.response.data.msg || "Internal server error, please try again later.", type: "error" });
+        } else if (error?.response?.status === 500) {
+          notify({
+            message:
+              error.response.data.msg ||
+              "Internal server error, please try again later.",
+            type: "error"
+          });
         } else {
-          notify({ message: "Something went wrong, please contact your administrator.", type: "error" });
+          notify({
+            message: "Something went wrong, please contact your administrator.",
+            type: "error"
+          });
         }
         console.log(error.message);
       }
     } else {
       setLoading(false);
-      notify({ message: "Bad request, please input invoice number, date, a valid file and type of file.", type: "error" });
+      notify({
+        message:
+          "Bad request, please input invoice number, date, a valid file and type of file.",
+        type: "error"
+      });
     }
   };
-
 
   return (
     <Container component="main" maxWidth="sm">
       <CssBaseline />
-      <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
+      <Box
+        sx={{
+          marginTop: 8,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
+        }}
+      >
+        <Avatar
+          sx={{
+            margin: 1,
+            backgroundColor: theme => theme.palette.secondary.main
+          }}
+        >
           <CloudUploadIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
           Upload Excel File
         </Typography>
-        <form
-          id="form"
-          className={classes.form}
-          noValidate
-          onSubmit={handleSubmit}
-        >
+        <Typography variant="body2" color="textSecondary" component="p">
+          Please fill out the form below to upload your excel file.
+        </Typography>
+
+        <form id="form" noValidate onSubmit={handleSubmit}>
           <TextField
             variant="outlined"
             margin="normal"
@@ -195,7 +153,6 @@ export default function UploadForm() {
           />
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DatePicker
-              id="date-picker-dialog"
               label="Invoice Date"
               format="YYYY/MM/DD"
               value={selectedDate}
@@ -214,6 +171,7 @@ export default function UploadForm() {
             label="Upload Type"
             name="upload-type"
             select
+            type="text"
             onChange={e => setUploadType(e.target.value)}
             value={uploadType}
           >
@@ -221,11 +179,32 @@ export default function UploadForm() {
             <MenuItem value="final">Final sheet</MenuItem>
           </TextField>
 
-
-          <Box className={classes.uploadBtnBox} >
-            <input accept=".xlsx" type="file" id="file" ref={fileInputRef} className={classes.input} onChange={e => setSelectedFileName(e.target.files[0].name)} />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              columnGap: theme => theme.spacing(2)
+            }}
+          >
+            <input
+              accept=".xlsx"
+              type="file"
+              id="file"
+              ref={fileInputRef}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                e.target?.files?.length &&
+                setSelectedFileName(e.target?.files[0].name)
+              }
+              hidden
+            />
             <label htmlFor="file">
-              <Button variant="contained" color="primary" component="span">
+              <Button
+                variant="contained"
+                color="primary"
+                component="span"
+                onClick={() => fileInputRef.current?.click()}
+              >
                 Select File
               </Button>
             </label>
@@ -240,55 +219,58 @@ export default function UploadForm() {
             fullWidth
             variant="contained"
             color="primary"
-            className={classes.submit}
+            sx={{ margin: theme => theme.spacing(2, 0, 0) }}
             disabled={loading}
-            loading={loading ? loading : undefined}
+            loadingPosition="center"
+            loading={loading ? loading : false}
           >
             Submit
-            {loading && (
-              <CircularProgress size={24} className={classes.btnProgress} />
-            )}
           </LoadingButton>
           <Button
             fullWidth
             variant="contained"
             color="primary"
-            className={classes.submit}
+            sx={{ margin: theme => theme.spacing(2, 0, 2) }}
             onClick={resetForm}
           >
             Reset
           </Button>
         </form>
-        <div className={classes.root}>
+        <div>
           {loading && (
             <LinearProgress variant="indeterminate" value={progress} />
           )}
         </div>
-        {/* {error && (
-          <Paper className={classes.output} variant="elevation" elevation={5}>
-            <Alert severity="error">{error}</Alert>
-          </Paper>
-        )} */}
         {file && (
-          <Paper variant="elevation" elevation={5} className={classes.output}>
+          <Paper
+            variant="elevation"
+            elevation={5}
+            sx={{
+              width: "100%",
+              padding: theme => theme.spacing(2)
+            }}
+          >
             <Alert severity="success">File created successfuly</Alert>
             <div>
               <Typography variant="h6" gutterBottom>
                 File Details
               </Typography>
               <Typography variant="subtitle1" gutterBottom noWrap>
-                <span className={classes.subtitleBold}>File Name: </span>{" "}
-                {file.name}
+                <span>File Name: </span> {file.name}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                <span className={classes.subtitleBold}>File Type: </span>{" "}
-                {file.type}
+                <span>File Type: </span> {file.type}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                <span className={classes.subtitleBold}>File Size: </span>{" "}
-                {file.size} bytes
+                <span>File Size: </span> {file.size} bytes
               </Typography>
-              <Typography variant="subtitle1" gutterBottom className={classes.subtitleBold}>
+              <Typography
+                variant="subtitle1"
+                gutterBottom
+                sx={{
+                  fontWeight: "bold"
+                }}
+              >
                 URL:{" "}
                 <Link href={file.url} download>
                   {file.name}
@@ -297,7 +279,23 @@ export default function UploadForm() {
             </div>
           </Paper>
         )}
-      </div>
+      </Box>
     </Container>
   );
+}
+
+interface File {
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+}
+
+interface error {
+  response: {
+    data: {
+      msg: string;
+    };
+    status: number;
+  };
 }
