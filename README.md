@@ -94,8 +94,6 @@ Runs ESLint to check for linting errors. See https://eslint.org/ for more inform
 
 Runs the app in the production mode. The page will reload if you make edits.
 
-### `npm run serve`
-
 ## License
 
 Distributed under the MIT License. See https://opensource.org/licenses/MIT for more information.
