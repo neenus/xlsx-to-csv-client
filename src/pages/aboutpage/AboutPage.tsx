@@ -1,14 +1,25 @@
-import { Container, Link, Typography } from "@mui/material";
+import { Container, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 import useTitle from "../../hooks/useTitle";
 
 const AboutPage = () => {
   useTitle("About Excel to CSV Converter");
   return (
     <Container maxWidth="lg">
-      <Typography variant="h4" component="h4" gutterBottom>
-        <Link href="/" color="inherit">
-          XLSX to CSV App
-        </Link>
+      <Typography
+        variant="h6"
+        component={Link}
+        to="/"
+        gutterBottom
+        sx={{
+          textDecoration: "none",
+          color: "inherit",
+          "&:hover": {
+            color: "primary.main"
+          }
+        }}
+      >
+        XLSX to CSV App
       </Typography>
       <Typography variant="body1" gutterBottom>
         Build {import.meta.env.VITE_VERSION}
