@@ -13,7 +13,8 @@ import {
   Engineering,
   Category,
   Info,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Home
 } from "@mui/icons-material/";
 
 const MENU_OPTIONS = [
@@ -44,7 +45,7 @@ const SettingsPopover = () => {
         color="inherit"
         aria-label="menu"
         onClick={handleOpen}
-        sx={{ ml: 28 }}
+        sx={{ ml: 28, color: theme => theme.palette.primary.main }}
       >
         <SettingsIcon />
       </IconButton>
@@ -57,11 +58,11 @@ const SettingsPopover = () => {
         transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <Stack sx={{ p: 2 }}>
-          <MenuItem onClick={handleClose} component={Link} to="/about">
+          <MenuItem onClick={handleClose} component={Link} to="/">
             <ListItemIcon>
-              <Info fontSize="small" />
+              <Home fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="About" />
+            <ListItemText primary="Home" />
           </MenuItem>
         </Stack>
 
@@ -78,6 +79,14 @@ const SettingsPopover = () => {
               <ListItemText primary={option.label} />
             </MenuItem>
           ))}
+
+          <Divider sx={{ borderStyle: "dashed" }} />
+          <MenuItem onClick={handleClose} component={Link} to="/about">
+            <ListItemIcon>
+              <Info fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="About" />
+          </MenuItem>
         </Stack>
       </Popover>
     </>
