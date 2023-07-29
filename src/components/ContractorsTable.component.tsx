@@ -6,7 +6,8 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Box
+  Paper,
+  Typography
 } from "@mui/material";
 
 const ContractorsTable = ({
@@ -18,38 +19,96 @@ const ContractorsTable = ({
 }: ContractorsTableProps) => {
   useTitle("Contractors");
   return (
-    <TableContainer component={Box}>
-      {isLoading && <div>Loading...</div>}
-      {isError && <div>{errorMessage}</div>}
-      <Table sx={{ minWidth: 650 }} aria-label="contractors table">
+    <TableContainer component={Paper}>
+      <Table aria-label="contractors table">
         <TableHead>
           <TableRow>
             <TableCell>Name</TableCell>
-            <TableCell>Address</TableCell>
-            <TableCell>City</TableCell>
-            <TableCell>State</TableCell>
-            <TableCell>Zip</TableCell>
-            <TableCell>Phone</TableCell>
+            <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+              Address
+            </TableCell>
+            <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+              City
+            </TableCell>
+            <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+              Province
+            </TableCell>
+            <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+              Postal Code
+            </TableCell>
+            <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+              Phone
+            </TableCell>
             <TableCell>Email</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {contractors.map((contractor: Contractor) => (
-            <TableRow
-              key={contractor._id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell component="th" scope="row">
-                {contractor.name}
-              </TableCell>
-              <TableCell align="right">{contractor.address}</TableCell>
-              <TableCell align="right">{contractor.city}</TableCell>
-              <TableCell align="right">{contractor.state}</TableCell>
-              <TableCell align="right">{contractor.zip}</TableCell>
-              <TableCell align="right">{contractor.phone}</TableCell>
-              <TableCell align="right">{contractor.email}</TableCell>
+          {contractors.length ? (
+            contractors.map(contractor => (
+              <TableRow
+                key={contractor.name}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {contractor.name}
+                </TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+                  {contractor.address}
+                </TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+                  {contractor.city}
+                </TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+                  {contractor.state}
+                </TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+                  {contractor.zip}
+                </TableCell>
+                <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
+                  {contractor.phone}
+                </TableCell>
+                <TableCell>{contractor.email}</TableCell>
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              {isLoading && (
+                <TableCell colSpan={7} align="center">
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    sx={{ p: 2, fontWeight: "bold" }}
+                  >
+                    Loading...
+                  </Typography>
+                </TableCell>
+              )}
+              {isError && (
+                <TableCell colSpan={7} align="center">
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    sx={{ p: 2, color: "red", fontWeight: "bold" }}
+                  >
+                    Error occured while fetching data: error message:{" "}
+                    {errorMessage}
+                  </Typography>
+                </TableCell>
+              )}
+
+              {!isLoading && !isError && (
+                <TableCell colSpan={7} align="center">
+                  <Typography
+                    variant="h6"
+                    component="div"
+                    sx={{ p: 2, fontWeight: "bold" }}
+                  >
+                    No data found
+                  </Typography>
+                </TableCell>
+              )}
             </TableRow>
-          ))}
+          )}
         </TableBody>
       </Table>
     </TableContainer>
