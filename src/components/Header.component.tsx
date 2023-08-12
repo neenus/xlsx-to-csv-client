@@ -15,7 +15,8 @@ const Header = () => {
           sx={{
             display: "flex",
             justifyContent: "end",
-            alignItems: "center"
+            alignItems: "center",
+            paddingRight: "0.5em !important"
           }}
         >
           <SettingsPopover />
