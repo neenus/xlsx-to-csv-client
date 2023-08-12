@@ -111,6 +111,12 @@ export default function UploadForm() {
     }
   };
 
+  const handleClick = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    if (e.keyCode === 13 || e.keyCode === 32) {
+      fileInputRef.current?.click();
+    }
+  };
+
   return (
     <Container component="main" maxWidth="sm">
       <CssBaseline />
@@ -203,7 +209,9 @@ export default function UploadForm() {
                 variant="contained"
                 color="primary"
                 component="span"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) =>
+                  handleClick(e)
+                }
               >
                 Select File
               </Button>
