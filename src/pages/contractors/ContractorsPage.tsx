@@ -5,6 +5,7 @@ import { Add as AddIcon } from "@mui/icons-material";
 import { Typography, Box, Container, Stack, Button } from "@mui/material";
 import ContractorsTable from "../../components/ContractorsTable.component";
 import ContractorDialog from "../../components/ContractorDialog.component";
+import { Contractor } from "../../types";
 
 const ContractorsPage = () => {
   const [contractors, setContractors] = useState<Contractor[]>([]);
@@ -76,6 +77,17 @@ const ContractorsPage = () => {
     }
   }, []);
 
+  const updateContractors = useCallback((contractor: Contractor) => {
+    setContractors(prev => {
+      return prev.map(prevContractor => {
+        if (prevContractor._id === contractor._id) {
+          return contractor;
+        }
+        return prevContractor;
+      });
+    });
+  }, []);
+
   useEffect(() => {
     getContractors();
   }, []);
@@ -85,7 +97,7 @@ const ContractorsPage = () => {
       <ContractorDialog
         isDialogOpen={isDialogOpen}
         handleDialogOpenClose={() => handleDialogOpenClose()}
-        handleAddContractor={handleAddContractor}
+        handleSubmit={handleAddContractor}
       />
       <Box
         sx={{
@@ -124,6 +136,7 @@ const ContractorsPage = () => {
           isError={isError}
           errorMessage={errorMessage}
           deleteContractor={deleteContractor}
+          updateContractors={updateContractors}
         />
       </Box>
     </>
@@ -131,14 +144,3 @@ const ContractorsPage = () => {
 };
 
 export default ContractorsPage;
-
-interface Contractor {
-  _id: string;
-  name: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  phone: string;
-  email: string;
-}

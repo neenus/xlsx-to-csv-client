@@ -1,4 +1,4 @@
-import React, { FormEvent } from "react";
+import React, { FormEvent, useEffect, useState } from "react";
 import {
   Dialog,
   Paper,
@@ -8,18 +8,73 @@ import {
   TextField,
   Typography
 } from "@mui/material";
+import { Contractor } from "../types";
 
 interface ContractorDialogProps {
   isDialogOpen: boolean;
   handleDialogOpenClose: () => void;
-  handleAddContractor: (event: FormEvent<HTMLFormElement>) => void;
+  handleSubmit: (
+    e: FormEvent<HTMLFormElement>,
+    contractor: Contractor
+  ) => Promise<void>;
+  action?: string;
+  contractor?: Contractor;
 }
 
 const ContractorDialog: React.FC<ContractorDialogProps> = ({
   isDialogOpen,
   handleDialogOpenClose,
-  handleAddContractor
+  handleSubmit,
+  contractor
 }) => {
+  const [formData, setFormData] = useState<Contractor>({
+    name: "",
+    address: "",
+    city: "",
+    state: "",
+    zip: "",
+    phone: "",
+    email: ""
+  });
+  const [action, setAction] = useState<string>("");
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  useEffect(() => {
+    // set action for dialog title
+    contractor ? setAction("Edit") : setAction("Add");
+
+    // update form data when editing an existing contractor
+    if (contractor) {
+      let formData = { ...contractor };
+
+      // set empty string if field is undefined
+      if (!formData.name) formData.name = "";
+      if (!formData.address) formData.address = "";
+      if (!formData.city) formData.city = "";
+      if (!formData.state) formData.state = "";
+      if (!formData.zip) formData.zip = "";
+      if (!formData.phone) formData.phone = "";
+      if (!formData.email) formData.email = "";
+
+      setFormData(formData);
+    } else {
+      // reset form data when adding a new contractor
+      setFormData({
+        name: "",
+        address: "",
+        city: "",
+        state: "",
+        zip: "",
+        phone: "",
+        email: ""
+      });
+    }
+  }, [contractor, setFormData]);
+
   return (
     <Dialog
       open={isDialogOpen}
@@ -28,113 +83,46 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
       maxWidth="sm"
     >
       <Paper sx={{ p: 2 }}>
-        <form onSubmit={handleAddContractor}>
+        <form
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+            handleSubmit(e, formData)
+          }
+        >
           <Typography
             variant="h5"
             gutterBottom
             sx={{ fontWeight: "800", textAlign: "center", mb: 3 }}
           >
-            Add Contractor
+            {action} Contractor
           </Typography>
 
           <Stack spacing={2}>
-            <FormControl fullWidth>
-              <TextField
-                id="name"
-                name="name"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Name"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="address"
-                name="address"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Address"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="city"
-                name="city"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="City"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="state"
-                name="state"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Province"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="zip"
-                name="zip"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Postal Code"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="phone"
-                name="phone"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Phone"
-              />
-            </FormControl>
-
-            <FormControl fullWidth>
-              <TextField
-                id="email"
-                name="email"
-                variant="outlined"
-                fullWidth
-                required
-                autoFocus
-                error={false}
-                helperText={""}
-                label="Email"
-              />
-            </FormControl>
+            {Object.keys(formData).map((field: any) => {
+              // only render fields that are needed for UI
+              if (
+                field !== "_id" &&
+                field !== "createdAt" &&
+                field !== "updatedAt" &&
+                field !== "__v"
+              )
+                return (
+                  <FormControl fullWidth key={field}>
+                    <TextField
+                      id={field}
+                      name={field}
+                      variant="outlined"
+                      fullWidth
+                      required
+                      autoFocus
+                      error={false}
+                      helperText={""}
+                      label={field.charAt(0).toUpperCase() + field.slice(1)}
+                      value={formData[field as keyof Contractor]}
+                      onChange={handleChange}
+                    />
+                  </FormControl>
+                );
+            })}
           </Stack>
 
           <Stack
@@ -149,7 +137,7 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
               Cancel
             </Button>
             <Button variant="contained" color="primary" type="submit">
-              Add Contractor
+              {action} Contractor
             </Button>
           </Stack>
         </form>
