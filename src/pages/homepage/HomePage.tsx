@@ -33,7 +33,7 @@ export default function UploadForm() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
   const [file, setFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadType, setUploadType] = useState<string>("");
   const [selectedFileName, setSelectedFileName] = useState<string>("");
   const { notify } = useToast();
@@ -108,12 +108,6 @@ export default function UploadForm() {
           "Bad request, please input invoice number, date, a valid file and type of file.",
         type: "error"
       });
-    }
-  };
-
-  const handleClick = (e: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
-    if (e.keyCode === 13 || e.keyCode === 32) {
-      fileInputRef.current?.click();
     }
   };
 
@@ -208,10 +202,8 @@ export default function UploadForm() {
               <Button
                 variant="contained"
                 color="primary"
-                component="span"
-                onClick={(e: React.MouseEvent<HTMLSpanElement, MouseEvent>) =>
-                  handleClick(e)
-                }
+                component="button"
+                onClick={() => fileInputRef.current?.click()}
               >
                 Select File
               </Button>

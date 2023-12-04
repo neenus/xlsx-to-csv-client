@@ -10,19 +10,19 @@ import {
 } from "@mui/material";
 
 interface ContractorDialogProps {
-  isContractorDialogOpen: boolean;
+  isDialogOpen: boolean;
   handleDialogOpenClose: () => void;
   handleAddContractor: (event: FormEvent<HTMLFormElement>) => void;
 }
 
 const ContractorDialog: React.FC<ContractorDialogProps> = ({
-  isContractorDialogOpen,
+  isDialogOpen,
   handleDialogOpenClose,
   handleAddContractor
 }) => {
   return (
     <Dialog
-      open={isContractorDialogOpen}
+      open={isDialogOpen}
       onClose={handleDialogOpenClose}
       fullWidth
       maxWidth="sm"
