@@ -66,7 +66,10 @@ export default function UploadForm() {
       formData.append("file", file);
       formData.append("type", uploadType);
 
-      const baseUrl = `${import.meta.env.VITE_API_BASE_URL}/convert`;
+      const baseUrl =
+        import.meta.env.MODE !== "production"
+          ? `${import.meta.env.VITE_API_BASE_URL}/convert`
+          : `${import.meta.env.VITE_API_BASE_URL_PROD}/convert`;
 
       try {
         const response = await axios.post(baseUrl, formData, {
