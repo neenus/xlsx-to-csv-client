@@ -8,7 +8,7 @@ pipeline {
       stage('Provision ENV File') {
           steps {
           sh 'echo "Provisioning .env.production.local file..."'
-          configFileProvider([configFile(fileId: "${FILE_ID}", targetLocation: '.env.production.local')]) {
+          configFileProvider([configFile(fileId: "${ENV_FILE_ID}", targetLocation: '.env.production.local')]) {
             sh 'echo .env.production.local file provisioned'
           }
           }
@@ -16,8 +16,8 @@ pipeline {
       stage('Build docker images') {
         steps {
           sh 'echo "Building docker image..."'
-          sh "docker build -t neenus007/xlsx2csv-client:${IMAGE_VERSION}.${BUILD_NUMBER} -f Dockerfile.prod ."
-          sh 'docker build -t neenus007/xlsx2csv-client:latest -f Dockerfile.prod .'
+          sh "docker build -t neenus007/xlsx2csv-client:${IMAGE_VERSION}.${BUILD_NUMBER} -f Dockerfile ."
+          sh 'docker build -t neenus007/xlsx2csv-client:latest -f Dockerfile .'
         }
       }
       stage('Login to DockerHub') {
