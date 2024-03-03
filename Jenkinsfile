@@ -1,6 +1,7 @@
 pipeline {
     agent any
     environment {
+      DOCKERHUB_CREDENTIALS = credentials('dockerhub-token')
       ENV_FILE_ID = '342cbbf9-e0a8-4807-b11c-1d9ec45b0860'
       IMAGE_VERSION = '0.1'
     }
