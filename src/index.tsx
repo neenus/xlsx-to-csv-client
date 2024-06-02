@@ -11,7 +11,7 @@ import App from "./App.tsx";
 
 const theme = createTheme({
   typography: {
-    fontFamily: "'Playfair Display', serif"
+    fontFamily: "'Plus Jakarta Sans', sans-serif"
   }
 });
 

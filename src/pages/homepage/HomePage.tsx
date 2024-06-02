@@ -33,7 +33,7 @@ export default function UploadForm() {
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [progress, setProgress] = useState<number>(0);
   const [file, setFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [uploadType, setUploadType] = useState<string>("");
   const [selectedFileName, setSelectedFileName] = useState<string>("");
   const { notify } = useToast();
@@ -205,7 +205,7 @@ export default function UploadForm() {
               <Button
                 variant="contained"
                 color="primary"
-                component="span"
+                component="button"
                 onClick={() => fileInputRef.current?.click()}
               >
                 Select File

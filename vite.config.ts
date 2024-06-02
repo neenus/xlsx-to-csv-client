@@ -6,9 +6,12 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: true, // needed for the Docker Container port mapping to work
-    strictPort: true,
-    open: true,
+    // strictPort: true,
+    // open: true,
     port: 3000, // you can replace this port with any port
+    watch: {
+      usePolling: true,
+    }
   },
   build: {
     rollupOptions: {
