@@ -15,9 +15,14 @@ const ContractorsPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   const getContractors = useCallback(async () => {
+    const apiUrl: string =
+      import.meta.env.MODE !== "production"
+        ? import.meta.env.VITE_API_BASE_URL
+        : import.meta.env.VITE_API_BASE_URL_PROD;
+
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/contractors`
+        `${apiUrl}/api/v1/contractors`
       );
       setContractors(response.data.data);
     } catch (error: any) {
