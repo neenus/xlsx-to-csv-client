@@ -38,9 +38,50 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
   });
   const [action, setAction] = useState<string>("");
 
+  const formatPhoneNumber = (value: string) => {
+    const cleaned = value.replace(/\D/g, "");
+    const match = cleaned.match(/^(\d{0,3})(\d{0,3})(\d{0,4})$/);
+    if (match) {
+      return `(${match[1]}${match[1] ? ")" : ""} ${match[2]}${match[2] ? "-" : ""}${match[3]}`;
+    }
+    return value;
+  };
+
+  const formatZipCode = (value: string) => {
+    const cleaned = value.replace(/\W/g, "").toUpperCase();
+
+    // Format the cleaned postal code as L0L 0L0
+    const match = cleaned.match(/^([A-Z]\d[A-Z])(\d[A-Z]\d)?$/);
+    if (match) {
+      return `${match[1]}${match[2] ? " " + match[2] : ""}`;
+    }
+
+    return value;
+  }
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      address: "",
+      city: "",
+      state: "",
+      zip: "",
+      phone: "",
+      email: ""
+    });
+  }
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+
+    let formattedValue = value;
+    if (name === "phone") {
+      formattedValue = formatPhoneNumber(value);
+    } else if (name === "zip") {
+      formattedValue = formatZipCode(value);
+    }
+
+    setFormData(prev => ({ ...prev, [name]: formattedValue }));
   };
 
   useEffect(() => {
@@ -63,15 +104,7 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
       setFormData(formData);
     } else {
       // reset form data when adding a new contractor
-      setFormData({
-        name: "",
-        address: "",
-        city: "",
-        state: "",
-        zip: "",
-        phone: "",
-        email: ""
-      });
+      resetForm();
     }
   }, [contractor, setFormData]);
 
@@ -84,8 +117,10 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
     >
       <Paper sx={{ p: 2 }}>
         <form
-          onSubmit={(e: React.FormEvent<HTMLFormElement>) =>
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             handleSubmit(e, formData)
+            resetForm()
+          }
           }
         >
           <Typography
@@ -98,7 +133,6 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
 
           <Stack spacing={2}>
             {Object.keys(formData).map((field: any) => {
-              // only render fields that are needed for UI
               if (
                 field !== "_id" &&
                 field !== "createdAt" &&
