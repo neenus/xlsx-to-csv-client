@@ -13,12 +13,12 @@ const ContractorsPage = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const apiUrl: string =
+    import.meta.env.MODE !== "production"
+      ? import.meta.env.VITE_API_BASE_URL
+      : import.meta.env.VITE_API_BASE_URL_PROD;
 
   const getContractors = useCallback(async () => {
-    const apiUrl: string =
-      import.meta.env.MODE !== "production"
-        ? import.meta.env.VITE_API_BASE_URL
-        : import.meta.env.VITE_API_BASE_URL_PROD;
 
     try {
       const response = await axios.get(
@@ -59,7 +59,7 @@ const ContractorsPage = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/contractors`,
+        `${apiUrl}/api/v1/contractors`,
         newContractor
       );
       setContractors(prev => [...prev, response.data.data]);
@@ -73,7 +73,7 @@ const ContractorsPage = () => {
   const deleteContractor = useCallback(async (id: string) => {
     try {
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/contractors/${id}`
+        `${apiUrl}/api/v1/contractors/${id}`
       );
       setContractors(prev => prev.filter(contractor => contractor._id !== id));
     } catch (error: any) {
@@ -82,15 +82,27 @@ const ContractorsPage = () => {
     }
   }, []);
 
-  const updateContractors = useCallback((contractor: Contractor) => {
-    setContractors(prev => {
-      return prev.map(prevContractor => {
-        if (prevContractor._id === contractor._id) {
-          return contractor;
-        }
-        return prevContractor;
-      });
-    });
+  const updateContractors = useCallback(async (contractor: Contractor) => {
+    try {
+      const response = await axios.patch(
+        `${apiUrl}/api/v1/contractors/${contractor._id}`,
+        contractor
+      );
+
+      if (response.status === 200) {
+        setContractors(prev => {
+          return prev.map(prevContractor => {
+            if (prevContractor._id === contractor._id) {
+              return contractor;
+            }
+            return prevContractor;
+          });
+        });
+      }
+    } catch (error: any) {
+      setIsError(true);
+      setErrorMessage(error.message);
+    }
   }, []);
 
   useEffect(() => {
