@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import useAuth from "../hooks/useAuth";
 import {
   Popover,
   IconButton,
@@ -14,28 +15,39 @@ import {
   Category,
   Info,
   Settings as SettingsIcon,
-  Home
+  Home,
+  Logout
 } from "@mui/icons-material/";
-
-const MENU_OPTIONS = [
-  {
-    label: "Manage Contractors",
-    icon: Engineering,
-    linkTo: "/contractors"
-  },
-  {
-    label: "Manage Services",
-    icon: Category,
-    linkTo: "/services"
-  }
-];
 
 const SettingsPopover = () => {
   const [open, setOpen] = useState<HTMLButtonElement | null>(null);
+  const { isAuthenticated, handleLogout } = useAuth();
 
   const handleOpen = (e: React.MouseEvent<HTMLButtonElement>) =>
     setOpen(e.currentTarget);
   const handleClose = () => setOpen(null);
+
+  const MENU_OPTIONS = [
+    {
+      label: "Manage Contractors",
+      icon: Engineering,
+      linkTo: "/contractors",
+      onclick: undefined
+    },
+    {
+      label: "Manage Services",
+      icon: Category,
+      linkTo: "/services",
+      onclick: undefined
+    },
+    {
+      label: "Logout",
+      icon: Logout,
+      linkTo: "",
+      onclick: handleLogout
+    }
+  ];
+
 
   return (
     <>
@@ -64,21 +76,29 @@ const SettingsPopover = () => {
             </ListItemIcon>
             <ListItemText primary="Home" />
           </MenuItem>
-        </Stack>
 
-        <Divider sx={{ borderStyle: "dashed" }} />
-        <Stack sx={{ p: 2 }}>
-          {MENU_OPTIONS.map(option => (
-            <MenuItem
-              key={option.label}
-              onClick={handleClose}
-              component={Link}
-              to={option.linkTo}
-            >
-              <ListItemIcon>{<option.icon />}</ListItemIcon>
-              <ListItemText primary={option.label} />
-            </MenuItem>
-          ))}
+          {isAuthenticated && (
+            <>
+              <Divider sx={{ borderStyle: "dashed" }} />
+              {MENU_OPTIONS.map(option => (
+                <MenuItem
+                  key={option.label}
+                  onClick={() => {
+                    if (option.onclick) {
+                      option.onclick();
+                    }
+                    handleClose();
+                  }}
+                  component={Link}
+                  to={option.linkTo === "" ? "/login" : option.linkTo}
+                >
+                  <ListItemIcon>{<option.icon />}</ListItemIcon>
+                  <ListItemText primary={option.label} />
+                </MenuItem>
+              ))}
+            </>
+          )}
+
 
           <Divider sx={{ borderStyle: "dashed" }} />
           <MenuItem onClick={handleClose} component={Link} to="/about">
