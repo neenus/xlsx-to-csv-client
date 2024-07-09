@@ -14,7 +14,7 @@ interface User {
 const baseURL: string =
   import.meta.env.MODE !== "production"
     ? `${import.meta.env.VITE_API_BASE_URL}/api/v1`
-    : import.meta.env.VITE_API_BASE_URL_PROD;
+    : `${import.meta.env.VITE_API_BASE_URL_PROD}/api/v1`;
 
 const apiClient = axios.create({
   baseURL,
