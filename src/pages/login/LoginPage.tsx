@@ -15,10 +15,12 @@ import RemoveRedEyeIcon from "@mui/icons-material/RemoveRedEye";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import useToast from "../../hooks/useToast";
 import useAuth from "../../hooks/useAuth";
+import useTitle from "../../hooks/useTitle";
 
 const theme = createTheme();
 
 const SignIn: React.FC = () => {
+  useTitle("XLSX to CSV | Login");
   const [fieldType, setFieldType] = useState("password");
   const [credentials, setCredentials] = useState({
     email: "",

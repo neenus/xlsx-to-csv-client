@@ -1,7 +1,9 @@
 import { Add as AddIcon } from "@mui/icons-material";
 import { Container, Typography, Box, Fab } from "@mui/material";
+import useTitle from "../../hooks/useTitle";
 
 const ServicesPage = () => {
+  useTitle("XLSX to CSV | Services");
   return (
     <Container maxWidth="lg">
       <Box

@@ -6,8 +6,10 @@ import { Typography, Box, Container, Stack, Button } from "@mui/material";
 import ContractorsTable from "../../components/ContractorsTable.component";
 import ContractorDialog from "../../components/ContractorDialog.component";
 import { Contractor } from "../../types";
+import useTitle from "../../hooks/useTitle";
 
 const ContractorsPage = () => {
+  useTitle("XLSX to CSV | Contractors");
   const [contractors, setContractors] = useState<Contractor[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isError, setIsError] = useState<boolean>(false);
