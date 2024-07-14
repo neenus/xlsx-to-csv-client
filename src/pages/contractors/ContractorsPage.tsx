@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, FormEvent } from "react";
-import axios from "axios";
+import { getContractors, addContractor, updateContractor, deleteContractor } from "../../api/apiService";
 
 import { Add as AddIcon } from "@mui/icons-material";
 import { Typography, Box, Container, Stack, Button } from "@mui/material";
@@ -15,18 +15,12 @@ const ContractorsPage = () => {
   const [isError, setIsError] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const apiUrl: string =
-    import.meta.env.MODE !== "production"
-      ? import.meta.env.VITE_API_BASE_URL
-      : import.meta.env.VITE_API_BASE_URL_PROD;
 
-  const getContractors = useCallback(async () => {
-
+  const handleGetContractors = useCallback(async () => {
+    setIsLoading(true);
     try {
-      const response = await axios.get(
-        `${apiUrl}/api/v1/contractors`
-      );
-      setContractors(response.data.data);
+      const response = await getContractors();
+      setContractors(response.data);
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);
@@ -37,17 +31,17 @@ const ContractorsPage = () => {
 
   const handleDialogOpenClose = () => setIsDialogOpen(prev => !prev);
 
-  const handleAddContractor = async (event: FormEvent<HTMLFormElement>) => {
+  const handleAddContractor = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
 
-    const name = formData.get("name");
-    const email = formData.get("email");
-    const phone = formData.get("phone");
-    const address = formData.get("address");
-    const city = formData.get("city");
-    const state = formData.get("state");
-    const zip = formData.get("zip");
+    const name = formData.get("name") as string;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const address = formData.get("address") as string;
+    const city = formData.get("city") as string;
+    const state = formData.get("state") as string;
+    const zip = formData.get("zip") as string;
 
     const newContractor = {
       name,
@@ -60,38 +54,31 @@ const ContractorsPage = () => {
     };
 
     try {
-      const response = await axios.post(
-        `${apiUrl}/api/v1/contractors`,
-        newContractor
-      );
-      setContractors(prev => [...prev, response.data.data]);
+      const response = await addContractor(newContractor);
+      setContractors(prev => [...prev, response.data]);
       handleDialogOpenClose();
-    } catch (error: any) {
-      setIsError(true);
-      setErrorMessage(error.message);
-    }
-  };
-
-  const deleteContractor = useCallback(async (id: string) => {
-    try {
-      await axios.delete(
-        `${apiUrl}/api/v1/contractors/${id}`
-      );
-      setContractors(prev => prev.filter(contractor => contractor._id !== id));
     } catch (error: any) {
       setIsError(true);
       setErrorMessage(error.message);
     }
   }, []);
 
-  const updateContractors = useCallback(async (contractor: Contractor) => {
+  const handledeleteContractor = useCallback(async (id: string) => {
     try {
-      const response = await axios.patch(
-        `${apiUrl}/api/v1/contractors/${contractor._id}`,
-        contractor
-      );
+      const response = await deleteContractor(id);
+      if (response.success)
+        setContractors(prev => prev.filter(contractor => contractor._id !== id));
+    } catch (error: any) {
+      setIsError(true);
+      setErrorMessage(error.message);
+    }
+  }, []);
 
-      if (response.status === 200) {
+  const handleupdateContractors = useCallback(async (contractor: Contractor) => {
+    try {
+      const response = await updateContractor(contractor);
+
+      if (response.success) {
         setContractors(prev => {
           return prev.map(prevContractor => {
             if (prevContractor._id === contractor._id) {
@@ -108,7 +95,7 @@ const ContractorsPage = () => {
   }, []);
 
   useEffect(() => {
-    getContractors();
+    handleGetContractors();
   }, []);
 
   return (
@@ -154,8 +141,8 @@ const ContractorsPage = () => {
           isLoading={isLoading}
           isError={isError}
           errorMessage={errorMessage}
-          deleteContractor={deleteContractor}
-          updateContractors={updateContractors}
+          deleteContractor={handledeleteContractor}
+          updateContractors={handleupdateContractors}
         />
       </Box>
     </>

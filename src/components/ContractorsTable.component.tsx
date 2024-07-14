@@ -18,7 +18,6 @@ import TablePaginationComponent from "./TablePagination.component";
 import ConfirmationDialog from "./ConfirmationDialog.component";
 import ContractorDialog from "./ContractorDialog.component";
 import { Contractor } from "../types";
-import axios from "axios";
 
 const ContractorsTable = ({
   contractors,
@@ -89,16 +88,10 @@ const ContractorsTable = ({
     updatedContractor.zip = formData.get("zip") as string;
 
     try {
-      const response = await axios.patch(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/contractors/${
-          selectedContractor._id
-        }`,
-        contractor
-      );
+      await updateContractors(updatedContractor);
       handleDialogOpenClose(null);
-      updateContractors(response.data.data);
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   };
 
