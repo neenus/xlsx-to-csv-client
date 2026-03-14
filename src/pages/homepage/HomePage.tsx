@@ -82,17 +82,17 @@ export default function UploadForm() {
           message: "File uploaded & converted successfully.",
           type: "success"
         });
-        setFile(response.data.outputFile);
+        setFile(response.data.data);
         resetForm();
       } catch (error: error | any) {
-        setErrorMessage(error?.response?.data?.msg);
+        setErrorMessage(error?.response?.data?.error);
         setLoading(false);
         if (error?.response?.status === 400) {
           notify({ message: errorMessage, type: "error" });
         } else if (error?.response?.status === 500) {
           notify({
             message:
-              error.response.data.msg ||
+              error.response.data.error ||
               "Internal server error, please try again later.",
             type: "error"
           });
@@ -297,7 +297,7 @@ interface File {
 interface error {
   response: {
     data: {
-      msg: string;
+      error: string;
     };
     status: number;
   };

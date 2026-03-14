@@ -21,6 +21,12 @@ interface ContractorDialogProps {
   contractor?: Contractor;
 }
 
+const formatLabel = (field: string) =>
+  field
+    .replace(/^contractor_/, "")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, c => c.toUpperCase());
+
 const ContractorDialog: React.FC<ContractorDialogProps> = ({
   isDialogOpen,
   handleDialogOpenClose,
@@ -28,13 +34,13 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
   contractor
 }) => {
   const [formData, setFormData] = useState<Contractor>({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    phone: "",
-    email: ""
+    contractor_name: "",
+    contractor_address: "",
+    contractor_city: "",
+    contractor_state: "",
+    contractor_zip: "",
+    contractor_phone: "",
+    contractor_email: ""
   });
   const [action, setAction] = useState<string>("");
 
@@ -61,13 +67,13 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      address: "",
-      city: "",
-      state: "",
-      zip: "",
-      phone: "",
-      email: ""
+      contractor_name: "",
+      contractor_address: "",
+      contractor_city: "",
+      contractor_state: "",
+      contractor_zip: "",
+      contractor_phone: "",
+      contractor_email: ""
     });
   }
 
@@ -75,9 +81,9 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
     const { name, value } = event.target;
 
     let formattedValue = value;
-    if (name === "phone") {
+    if (name === "contractor_phone") {
       formattedValue = formatPhoneNumber(value);
-    } else if (name === "zip") {
+    } else if (name === "contractor_zip") {
       formattedValue = formatZipCode(value);
     }
 
@@ -92,14 +98,13 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
     if (contractor) {
       let formData = { ...contractor };
 
-      // set empty string if field is undefined
-      if (!formData.name) formData.name = "";
-      if (!formData.address) formData.address = "";
-      if (!formData.city) formData.city = "";
-      if (!formData.state) formData.state = "";
-      if (!formData.zip) formData.zip = "";
-      if (!formData.phone) formData.phone = "";
-      if (!formData.email) formData.email = "";
+      if (!formData.contractor_name) formData.contractor_name = "";
+      if (!formData.contractor_address) formData.contractor_address = "";
+      if (!formData.contractor_city) formData.contractor_city = "";
+      if (!formData.contractor_state) formData.contractor_state = "";
+      if (!formData.contractor_zip) formData.contractor_zip = "";
+      if (!formData.contractor_phone) formData.contractor_phone = "";
+      if (!formData.contractor_email) formData.contractor_email = "";
 
       setFormData(formData);
     } else {
@@ -150,7 +155,7 @@ const ContractorDialog: React.FC<ContractorDialogProps> = ({
                       autoFocus
                       error={false}
                       helperText={""}
-                      label={field.charAt(0).toUpperCase() + field.slice(1)}
+                      label={formatLabel(field)}
                       value={formData[field as keyof Contractor]}
                       onChange={handleChange}
                     />

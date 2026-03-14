@@ -35,22 +35,22 @@ const ContractorsPage = () => {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
 
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const phone = formData.get("phone") as string;
-    const address = formData.get("address") as string;
-    const city = formData.get("city") as string;
-    const state = formData.get("state") as string;
-    const zip = formData.get("zip") as string;
+    const contractor_name = formData.get("contractor_name") as string;
+    const contractor_email = formData.get("contractor_email") as string;
+    const contractor_phone = formData.get("contractor_phone") as string;
+    const contractor_address = formData.get("contractor_address") as string;
+    const contractor_city = formData.get("contractor_city") as string;
+    const contractor_state = formData.get("contractor_state") as string;
+    const contractor_zip = formData.get("contractor_zip") as string;
 
     const newContractor = {
-      name,
-      email,
-      phone,
-      address,
-      city,
-      state,
-      zip
+      contractor_name,
+      contractor_email,
+      contractor_phone,
+      contractor_address,
+      contractor_city,
+      contractor_state,
+      contractor_zip
     };
 
     try {

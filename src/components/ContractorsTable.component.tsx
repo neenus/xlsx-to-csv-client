@@ -35,13 +35,13 @@ const ContractorsTable = ({
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
   const [selectedContractor, setSelectedContractor] = useState<Contractor>({
     _id: "",
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zip: "",
-    phone: "",
-    email: ""
+    contractor_name: "",
+    contractor_address: "",
+    contractor_city: "",
+    contractor_state: "",
+    contractor_zip: "",
+    contractor_phone: "",
+    contractor_email: ""
   });
 
   const handleDialogOpenClose = useCallback((contractor: Contractor | null) => {
@@ -49,13 +49,13 @@ const ContractorsTable = ({
     setSelectedContractor(
       contractor || {
         _id: "",
-        name: "",
-        address: "",
-        city: "",
-        state: "",
-        zip: "",
-        phone: "",
-        email: ""
+        contractor_name: "",
+        contractor_address: "",
+        contractor_city: "",
+        contractor_state: "",
+        contractor_zip: "",
+        contractor_phone: "",
+        contractor_email: ""
       }
     );
   }, []);
@@ -79,13 +79,13 @@ const ContractorsTable = ({
     let updatedContractor: Contractor = { ...contractor };
 
     // Update contractor object with form data
-    updatedContractor.name = formData.get("name") as string;
-    updatedContractor.email = formData.get("email") as string;
-    updatedContractor.phone = formData.get("phone") as string;
-    updatedContractor.address = formData.get("address") as string;
-    updatedContractor.city = formData.get("city") as string;
-    updatedContractor.state = formData.get("state") as string;
-    updatedContractor.zip = formData.get("zip") as string;
+    updatedContractor.contractor_name = formData.get("contractor_name") as string;
+    updatedContractor.contractor_email = formData.get("contractor_email") as string;
+    updatedContractor.contractor_phone = formData.get("contractor_phone") as string;
+    updatedContractor.contractor_address = formData.get("contractor_address") as string;
+    updatedContractor.contractor_city = formData.get("contractor_city") as string;
+    updatedContractor.contractor_state = formData.get("contractor_state") as string;
+    updatedContractor.contractor_zip = formData.get("contractor_zip") as string;
 
     try {
       await updateContractors(updatedContractor);
@@ -143,12 +143,12 @@ const ContractorsTable = ({
                     sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                   >
                     <TableCell component="th" scope="row">
-                      {contractor.name}
+                      {contractor.contractor_name}
                     </TableCell>
                     <TableCell sx={{ display: { xs: "none", sm: "revert" } }}>
-                      {contractor.phone}
+                      {contractor.contractor_phone}
                     </TableCell>
-                    <TableCell>{contractor.email}</TableCell>
+                    <TableCell>{contractor.contractor_email}</TableCell>
                     <TableCell align="right">
                       <IconButton
                         aria-label="edit"
