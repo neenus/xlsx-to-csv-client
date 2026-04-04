@@ -8,3 +8,11 @@ export interface Contractor {
   contractor_phone: string;
   contractor_email: string;
 }
+
+export interface Service {
+  _id?: string;
+  service_name: string;
+  service_education_level: string[];
+  service_rate: number;
+  aliases: string[];
+}
