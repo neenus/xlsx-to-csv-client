@@ -2,21 +2,12 @@ import { useState, useRef } from "react";
 import "./homepage.styles.css";
 
 import {
-  Avatar,
-  Button,
-  TextField,
-  Link,
-  Box,
-  Typography,
-  Container,
-  LinearProgress,
-  Paper,
-  MenuItem,
-  CssBaseline
+  Avatar, Button, TextField, Link, Box, Typography, Container,
+  LinearProgress, Paper, CssBaseline, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, Select, MenuItem, FormControl,
+  InputLabel, Alert
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
-
-import Alert from "@mui/material/Alert";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
@@ -24,18 +15,57 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import useTitle from "../../hooks/useTitle";
 import useToast from "../../hooks/useToast";
 import axios from "axios";
+import { parseHeaders } from "../../api/apiService";
+
+// The fields this app needs from each xlsx row
+const EXPECTED_FIELDS: { key: string; label: string }[] = [
+  { key: "practitioner", label: "Practitioner" },
+  { key: "student", label: "Student / Client Name" },
+  { key: "parent", label: "Parent Name" },
+  { key: "serviceDesc", label: "Service Description" },
+  { key: "hours", label: "Monthly Hours (commitment)" },
+  { key: "insuranceReceipt", label: "Insurance Receipt Flag" },
+  { key: "registrationFee", label: "Registration Fee Flag" },
+];
+
+// Hints used for auto-detecting columns from xlsx headers
+const FIELD_HINTS: Record<string, string[]> = {
+  practitioner: ["practitioner"],
+  student: ["student", "client name"],
+  parent: ["parent"],
+  serviceDesc: ["service", "schedule"],
+  hours: ["monthly commitment", "commitment"],
+  insuranceReceipt: ["insurance receipt"],
+  registrationFee: ["registration fee", "new student"],
+};
+
+const normalizeHeader = (s: string) => s.toLowerCase().trim().replace(/\s+/g, " ");
+
+const autoDetect = (headers: string[]): Record<string, number> => {
+  const mapping: Record<string, number> = {};
+  Object.entries(FIELD_HINTS).forEach(([field, hints]) => {
+    const idx = headers.findIndex(h =>
+      hints.some(hint => normalizeHeader(h).includes(hint))
+    );
+    if (idx !== -1) mapping[field] = idx;
+  });
+  return mapping;
+};
 
 export default function UploadForm() {
   useTitle("Excel to CSV Converter");
   const [nextInvoiceNumber, setNextInvoiceNumber] = useState("");
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
-  const [progress, setProgress] = useState<number>(0);
-  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [parsingHeaders, setParsingHeaders] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [progress] = useState(0);
+  const [file, setFile] = useState<ConvertedFile | null>(null);
+  const [selectedFileName, setSelectedFileName] = useState("");
+  const [headers, setHeaders] = useState<string[]>([]);
+  const [columnMapping, setColumnMapping] = useState<Record<string, number>>({});
+  const [showMapping, setShowMapping] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [uploadType, setUploadType] = useState<string>("");
-  const [selectedFileName, setSelectedFileName] = useState<string>("");
   const { notify } = useToast();
 
   const handleDateChange = (date: any) => setSelectedDate(date.$d);
@@ -43,111 +73,110 @@ export default function UploadForm() {
   const resetForm = () => {
     setSelectedDate(null);
     setNextInvoiceNumber("");
-    setProgress(0);
     setErrorMessage("");
     setLoading(false);
-    setUploadType("");
+    setParsingHeaders(false);
     setSelectedFileName("");
-    fileInputRef.current?.value && (fileInputRef.current.value = "");
+    setHeaders([]);
+    setColumnMapping({});
+    setShowMapping(false);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleSubmit = async (event: any) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    setSelectedFileName(selected.name);
+    setShowMapping(false);
+    setHeaders([]);
+    setColumnMapping({});
+    setParsingHeaders(true);
+    setErrorMessage("");
+
+    try {
+      const result = await parseHeaders(selected);
+      setHeaders(result.headers);
+      setColumnMapping(autoDetect(result.headers));
+      setShowMapping(true);
+    } catch (err: any) {
+      setErrorMessage(err?.response?.data?.error || "Failed to read file headers.");
+    } finally {
+      setParsingHeaders(false);
+    }
+  };
+
+  const handleMappingChange = (field: string, colIndex: number) => {
+    setColumnMapping(prev => ({ ...prev, [field]: colIndex }));
+  };
+
+  const isMappingComplete = () =>
+    EXPECTED_FIELDS.every(({ key }) => columnMapping[key] !== undefined);
+
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setErrorMessage("");
     setFile(null);
-    const formData = new FormData();
-    let file = fileInputRef.current?.files
-      ? fileInputRef.current.files[0]
-      : null;
-    if (nextInvoiceNumber && selectedDate && file && uploadType) {
-      formData.append("nextInvoiceNumber", nextInvoiceNumber);
-      formData.append("date", selectedDate);
-      formData.append("file", file);
-      formData.append("type", uploadType);
 
-      const baseUrl =
-        import.meta.env.MODE !== "production"
-          ? `${import.meta.env.VITE_API_BASE_URL}/convert`
-          : `${import.meta.env.VITE_API_BASE_URL_PROD}/convert`;
+    const selectedFile = fileInputRef.current?.files?.[0];
 
-      try {
-        const response = await axios.post(baseUrl, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
-          }
-        });
-        setLoading(false);
-        notify({
-          message: "File uploaded & converted successfully.",
-          type: "success"
-        });
-        setFile(response.data.data);
-        resetForm();
-      } catch (error: error | any) {
-        setErrorMessage(error?.response?.data?.error);
-        setLoading(false);
-        if (error?.response?.status === 400) {
-          notify({ message: errorMessage, type: "error" });
-        } else if (error?.response?.status === 500) {
-          notify({
-            message:
-              error.response.data.error ||
-              "Internal server error, please try again later.",
-            type: "error"
-          });
-        } else {
-          notify({
-            message: "Something went wrong, please contact your administrator.",
-            type: "error"
-          });
-        }
-        console.log(error.message);
-      }
-    } else {
+    if (!nextInvoiceNumber || !selectedDate || !selectedFile || !isMappingComplete()) {
       setLoading(false);
       notify({
-        message:
-          "Bad request, please input invoice number, date, a valid file and type of file.",
+        message: "Please fill in all fields, select a file, and complete the column mapping.",
         type: "error"
       });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("nextInvoiceNumber", nextInvoiceNumber);
+    formData.append("date", selectedDate);
+    formData.append("file", selectedFile);
+    formData.append("columnMapping", JSON.stringify(columnMapping));
+
+    const baseUrl =
+      import.meta.env.MODE !== "production"
+        ? `${import.meta.env.VITE_API_BASE_URL}/convert`
+        : `${import.meta.env.VITE_API_BASE_URL_PROD}/convert`;
+
+    try {
+      const response = await axios.post(baseUrl, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      setLoading(false);
+      notify({ message: "File uploaded & converted successfully.", type: "success" });
+      setFile(response.data.data);
+      resetForm();
+    } catch (error: any) {
+      const msg = error?.response?.data?.error || "Something went wrong, please contact your administrator.";
+      setErrorMessage(msg);
+      setLoading(false);
+      notify({ message: msg, type: "error" });
     }
   };
 
   return (
     <Container component="main" maxWidth="sm">
       <CssBaseline />
-      <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center"
-        }}
-      >
-        <Avatar
-          sx={{
-            margin: 1,
-            backgroundColor: theme => theme.palette.secondary.main
-          }}
-        >
+      <Box sx={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <Avatar sx={{ margin: 1, backgroundColor: theme => theme.palette.secondary.main }}>
           <CloudUploadIcon />
         </Avatar>
-        <Typography component="h1" variant="h5">
-          Upload Excel File
-        </Typography>
+        <Typography component="h1" variant="h5">Upload Billing Sheet</Typography>
         <Typography variant="body2" color="textSecondary" component="p">
-          Please fill out the form below to upload your excel file.
+          Fill in the details below, then select your monthly billing xlsx file.
         </Typography>
 
-        <form id="form" noValidate onSubmit={handleSubmit}>
+        <form id="form" noValidate onSubmit={handleSubmit} style={{ width: "100%" }}>
           <TextField
             variant="outlined"
             margin="normal"
             required
             fullWidth
             id="nextInvoiceNumber"
-            label="Last Invoice Number from QBO"
+            label="First Invoice Number"
             name="nextInvoiceNumber"
             type="number"
             autoFocus
@@ -165,57 +194,76 @@ export default function UploadForm() {
             />
           </LocalizationProvider>
 
-          <TextField
-            variant="outlined"
-            margin="normal"
-            required
-            fullWidth
-            id="upload-type"
-            label="Upload Type"
-            name="upload-type"
-            select
-            type="text"
-            onChange={e => setUploadType(e.target.value)}
-            value={uploadType}
-          >
-            <MenuItem value="proposed">Proposed sheet</MenuItem>
-            <MenuItem value="final">Final sheet</MenuItem>
-          </TextField>
-
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              columnGap: theme => theme.spacing(2)
-            }}
-          >
+          <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", columnGap: theme => theme.spacing(2), mt: 2 }}>
             <input
               accept=".xlsx"
               type="file"
               id="file"
               ref={fileInputRef}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                e.target?.files?.length &&
-                setSelectedFileName(e.target?.files[0].name)
-              }
+              onChange={handleFileChange}
               hidden
             />
-            <label htmlFor="file">
-              <Button
-                variant="contained"
-                color="primary"
-                component="button"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Select File
-              </Button>
-            </label>
-
-            <Typography variant="body2" color="textSecondary" component="p">
-              {selectedFileName ? selectedFileName : "No file selected"}
+            <Button variant="contained" color="primary" component="button" onClick={() => fileInputRef.current?.click()}>
+              Select File
+            </Button>
+            <Typography variant="body2" color="textSecondary">
+              {selectedFileName || "No file selected"}
             </Typography>
           </Box>
+
+          {parsingHeaders && (
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="body2" color="textSecondary">Reading file headers…</Typography>
+              <LinearProgress variant="indeterminate" value={progress} />
+            </Box>
+          )}
+
+          {showMapping && headers.length > 0 && (
+            <Box sx={{ mt: 3, width: "100%" }}>
+              <Typography variant="h6" gutterBottom>Verify Column Mapping</Typography>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                Review the auto-detected column mapping. Adjust any that are incorrect before converting.
+              </Typography>
+              <TableContainer component={Paper} variant="outlined">
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell><strong>Expected Field</strong></TableCell>
+                      <TableCell><strong>Excel Column</strong></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {EXPECTED_FIELDS.map(({ key, label }) => (
+                      <TableRow key={key}>
+                        <TableCell>{label}</TableCell>
+                        <TableCell>
+                          <FormControl size="small" fullWidth required>
+                            <InputLabel id={`label-${key}`}>Column</InputLabel>
+                            <Select
+                              labelId={`label-${key}`}
+                              value={columnMapping[key] ?? ""}
+                              label="Column"
+                              onChange={e => handleMappingChange(key, Number(e.target.value))}
+                            >
+                              {headers.map((h, i) => (
+                                <MenuItem key={i} value={i}>
+                                  {h || `(Column ${i + 1})`}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          )}
+
+          {errorMessage && (
+            <Alert severity="error" sx={{ mt: 2 }}>{errorMessage}</Alert>
+          )}
 
           <LoadingButton
             type="submit"
@@ -223,63 +271,38 @@ export default function UploadForm() {
             variant="contained"
             color="primary"
             sx={{ margin: theme => theme.spacing(2, 0, 0) }}
-            disabled={loading}
+            disabled={loading || !showMapping || !isMappingComplete()}
             loadingPosition="center"
-            loading={loading ? loading : false}
+            loading={loading}
           >
-            Submit
+            Convert
           </LoadingButton>
           <Button
             fullWidth
-            variant="contained"
+            variant="outlined"
             color="primary"
-            sx={{ margin: theme => theme.spacing(2, 0, 2) }}
+            sx={{ margin: theme => theme.spacing(1, 0, 2) }}
             onClick={resetForm}
           >
             Reset
           </Button>
         </form>
-        <div>
-          {loading && (
-            <LinearProgress variant="indeterminate" value={progress} />
-          )}
-        </div>
+
         {file && (
-          <Paper
-            variant="elevation"
-            elevation={5}
-            sx={{
-              width: "100%",
-              padding: theme => theme.spacing(2)
-            }}
-          >
-            <Alert severity="success">File created successfuly</Alert>
-            <div>
-              <Typography variant="h6" gutterBottom>
-                File Details
-              </Typography>
+          <Paper variant="elevation" elevation={5} sx={{ width: "100%", padding: theme => theme.spacing(2) }}>
+            <Alert severity="success">File created successfully</Alert>
+            <Box sx={{ mt: 1 }}>
+              <Typography variant="h6" gutterBottom>File Details</Typography>
               <Typography variant="subtitle1" gutterBottom noWrap>
-                <span>File Name: </span> {file.name}
+                <span>File Name: </span>{file.name}
               </Typography>
               <Typography variant="subtitle1" gutterBottom>
-                <span>File Type: </span> {file.type}
+                <span>File Size: </span>{file.size} bytes
               </Typography>
-              <Typography variant="subtitle1" gutterBottom>
-                <span>File Size: </span> {file.size} bytes
+              <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: "bold" }}>
+                URL: <Link href={file.url} download>{file.name}</Link>
               </Typography>
-              <Typography
-                variant="subtitle1"
-                gutterBottom
-                sx={{
-                  fontWeight: "bold"
-                }}
-              >
-                URL:{" "}
-                <Link href={file.url} download>
-                  {file.name}
-                </Link>
-              </Typography>
-            </div>
+            </Box>
           </Paper>
         )}
       </Box>
@@ -287,18 +310,9 @@ export default function UploadForm() {
   );
 }
 
-interface File {
+interface ConvertedFile {
   name: string;
   type: string;
   size: number;
   url: string;
-}
-
-interface error {
-  response: {
-    data: {
-      error: string;
-    };
-    status: number;
-  };
 }
