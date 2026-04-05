@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Contractor } from '../types';
+import { Contractor, Service } from '../types';
 
 interface Credentials {
   email: string;
@@ -55,3 +55,43 @@ export const deleteContractor = async (id: string): Promise<{ success: boolean, 
   const response = await apiClient.delete<{ success: boolean, data: {} }>(`/contractors/${id}`);
   return response.data;
 }
+
+// Services API
+export const getServices = async (): Promise<{ success: boolean, count: number, data: Service[] }> => {
+  const { data } = await apiClient.get<{ success: boolean, count: number, data: Service[] }>("/services");
+  return data;
+};
+
+export const addService = async (service: Omit<Service, "_id">): Promise<{ success: boolean, data: Service }> => {
+  const { data } = await apiClient.post<{ success: boolean, data: Service }>("/services", service);
+  return data;
+};
+
+export const updateService = async (service: Service): Promise<{ success: boolean, data: Service }> => {
+  const { data } = await apiClient.put<{ success: boolean, data: Service }>(`/services/${service._id}`, service);
+  return data;
+};
+
+export const deleteService = async (id: string): Promise<{ success: boolean, data: {} }> => {
+  const { data } = await apiClient.delete<{ success: boolean, data: {} }>(`/services/${id}`);
+  return data;
+};
+
+export const parseHeaders = async (
+  file: File
+): Promise<{ sheetName: string; headers: string[]; headerRowIndex: number }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const baseUrl =
+    import.meta.env.MODE !== "production"
+      ? `${import.meta.env.VITE_API_BASE_URL}/convert/parse-headers`
+      : `${import.meta.env.VITE_API_BASE_URL_PROD}/convert/parse-headers`;
+
+  const response = await axios.post<{
+    success: boolean;
+    data: { sheetName: string; headers: string[]; headerRowIndex: number };
+  }>(baseUrl, formData, { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true });
+
+  return response.data.data;
+};

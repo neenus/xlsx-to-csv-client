@@ -16,7 +16,7 @@ const AboutPage = () => {
           : import.meta.env.VITE_API_BASE_URL_PROD;
       try {
         const response = await axios.get(`${apiUrl}/api/v1/version`);
-        const serverVersion = response.data.version;
+        const serverVersion = response.data.data.version;
         setServerVersion(serverVersion);
       } catch (error: any) {
         console.error(error.message);
