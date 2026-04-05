@@ -48,6 +48,11 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
     setAliasesInput("");
   };
 
+  const handleClose = () => {
+    resetForm();
+    handleDialogOpenClose();
+  };
+
   useEffect(() => {
     if (service) {
       setFormData({ ...service });
@@ -83,7 +88,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
   };
 
   return (
-    <Dialog open={isDialogOpen} onClose={handleDialogOpenClose} fullWidth maxWidth="sm">
+    <Dialog open={isDialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
       <Paper sx={{ p: 2 }}>
         <form onSubmit={handleFormSubmit}>
           <Typography variant="h5" gutterBottom sx={{ fontWeight: "800", textAlign: "center", mb: 3 }}>
@@ -152,7 +157,7 @@ const ServiceDialog: React.FC<ServiceDialogProps> = ({
           </Stack>
 
           <Stack direction="row" spacing={2} sx={{ mt: 3, justifyContent: "end" }}>
-            <Button color="inherit" onClick={handleDialogOpenClose}>Cancel</Button>
+            <Button color="inherit" onClick={handleClose}>Cancel</Button>
             <Button variant="contained" color="primary" type="submit">{action} Service</Button>
           </Stack>
         </form>

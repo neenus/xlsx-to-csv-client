@@ -91,7 +91,7 @@ export const parseHeaders = async (
   const response = await axios.post<{
     success: boolean;
     data: { sheetName: string; headers: string[]; headerRowIndex: number };
-  }>(baseUrl, formData, { headers: { "Content-Type": "multipart/form-data" } });
+  }>(baseUrl, formData, { headers: { "Content-Type": "multipart/form-data" }, withCredentials: true });
 
   return response.data.data;
 };
