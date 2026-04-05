@@ -3,9 +3,8 @@ import "./homepage.styles.css";
 
 import {
   Avatar, Button, TextField, Link, Box, Typography, Container,
-  LinearProgress, Paper, CssBaseline, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Select, MenuItem, FormControl,
-  InputLabel, Alert
+  LinearProgress, Paper, CssBaseline, Select, MenuItem, FormControl,
+  Alert, Stack, Divider
 } from "@mui/material";
 import LoadingButton from "@mui/lab/LoadingButton";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
@@ -158,7 +157,7 @@ export default function UploadForm() {
   };
 
   return (
-    <Container component="main" maxWidth="sm">
+    <Container component="main" maxWidth="md">
       <CssBaseline />
       <Box sx={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center" }}>
         <Avatar sx={{ margin: 1, backgroundColor: theme => theme.palette.secondary.main }}>
@@ -219,46 +218,35 @@ export default function UploadForm() {
           )}
 
           {showMapping && headers.length > 0 && (
-            <Box sx={{ mt: 3, width: "100%" }}>
+            <Paper variant="outlined" sx={{ mt: 3, p: 2, width: "100%" }}>
               <Typography variant="h6" gutterBottom>Verify Column Mapping</Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
                 Review the auto-detected column mapping. Adjust any that are incorrect before converting.
               </Typography>
-              <TableContainer component={Paper} variant="outlined">
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell><strong>Expected Field</strong></TableCell>
-                      <TableCell><strong>Excel Column</strong></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {EXPECTED_FIELDS.map(({ key, label }) => (
-                      <TableRow key={key}>
-                        <TableCell>{label}</TableCell>
-                        <TableCell>
-                          <FormControl size="small" fullWidth required>
-                            <InputLabel id={`label-${key}`}>Column</InputLabel>
-                            <Select
-                              labelId={`label-${key}`}
-                              value={columnMapping[key] ?? ""}
-                              label="Column"
-                              onChange={e => handleMappingChange(key, Number(e.target.value))}
-                            >
-                              {headers.map((h, i) => (
-                                <MenuItem key={i} value={i}>
-                                  {h || `(Column ${i + 1})`}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
+              <Stack divider={<Divider flexItem />} spacing={2}>
+                {EXPECTED_FIELDS.map(({ key, label }) => (
+                  <Box key={key}>
+                    <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 500 }}>
+                      {label}
+                    </Typography>
+                    <FormControl size="small" fullWidth required>
+                      <Select
+                        displayEmpty
+                        value={columnMapping[key] ?? ""}
+                        onChange={e => handleMappingChange(key, Number(e.target.value))}
+                      >
+                        <MenuItem value="" disabled>Select a column</MenuItem>
+                        {headers.map((h, i) => (
+                          <MenuItem key={i} value={i}>
+                            {h || `(Column ${i + 1})`}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
           )}
 
           {errorMessage && (
