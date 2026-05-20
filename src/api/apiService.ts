@@ -25,9 +25,15 @@ const apiClient = axios.create({
   }
 });
 
+apiClient.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 // Auth API
-export const login = async (credentials: Credentials): Promise<User> => {
-  const response = await apiClient.post<User>("/auth/login", credentials);
+export const login = async (credentials: Credentials): Promise<{ success: boolean; data: { token: string; user: User } }> => {
+  const response = await apiClient.post<{ success: boolean; data: { token: string; user: User } }>("/auth/login", credentials);
   return response.data;
 };
 
