@@ -16,6 +16,8 @@ interface UserContextType {
   handleLogout: () => Promise<void>;
 }
 
+const USER_STORAGE_KEY = 'auth_user';
+
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const useUser = (): UserContextType => {
@@ -27,21 +29,33 @@ export const useUser = (): UserContextType => {
 };
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const stored = localStorage.getItem(USER_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('auth_token'));
 
   const handleLogin = async (credentials: { email: string, password: string }) => {
-    try {
-      const data: any = await login(credentials);
-      // nr-auth responds as { success, data: { token, user } }
-      const { token: authToken, user: authUser } = data.data;
-      localStorage.setItem('auth_token', authToken);
-      setUser(authUser);
-      setToken(authToken);
-    } catch (error) {
-      console.error('Error logging in user', error);
+    const data: any = await login(credentials);
+    const { token: authToken, user: authUser } = data.data ?? {};
+
+    if (!authToken || !authUser) {
+      throw new Error(
+        data.data?.requiresTwoFactor
+          ? 'Two-factor authentication is not supported in this app'
+          : 'Login failed — unexpected response from server'
+      );
     }
-  }
+
+    localStorage.setItem('auth_token', authToken);
+    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
+    setUser(authUser);
+    setToken(authToken);
+  };
 
   const handleLogout = async () => {
     try {
@@ -50,16 +64,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Error logging out user', error);
     } finally {
       localStorage.removeItem('auth_token');
+      localStorage.removeItem(USER_STORAGE_KEY);
       setUser(null);
       setToken(null);
     }
-  }
+  };
 
   return (
     <UserContext.Provider value={{ user, token, handleLogin, handleLogout }} >
       {children}
     </UserContext.Provider>
-  )
+  );
 };
 
 export default UserContext;

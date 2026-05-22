@@ -45,8 +45,15 @@ const SignIn: React.FC = () => {
       return;
     }
 
-    await handleLogin(credentials);
-    history.push("/");
+    try {
+      await handleLogin(credentials);
+      history.push("/");
+    } catch (error: any) {
+      notify({
+        message: error?.message || "Login failed. Please try again.",
+        type: "error"
+      });
+    }
   };
 
   return (
