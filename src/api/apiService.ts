@@ -31,6 +31,14 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message = error.response?.data?.error || error.message;
+    return Promise.reject(new Error(message));
+  }
+);
+
 // Auth API
 export const login = async (credentials: Credentials): Promise<{ success: boolean; data: { token: string; user: User } }> => {
   const response = await apiClient.post<{ success: boolean; data: { token: string; user: User } }>("/auth/login", credentials);
