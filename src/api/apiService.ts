@@ -19,34 +19,37 @@ const baseURL: string =
 
 const apiClient = axios.create({
   baseURL,
-  withCredentials: true,
+  withCredentials: true, // send httpOnly cookie on every request
   headers: {
     "Content-Type": "application/json"
   }
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token');
-  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
-
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // If 401 received, broadcast event so AuthContext can clear user state
+    if (error.response?.status === 401) {
+      window.dispatchEvent(new Event('auth:unauthorized'));
+    }
     const message = error.response?.data?.error || error.message;
     return Promise.reject(new Error(message));
   }
 );
 
 // Auth API
-export const login = async (credentials: Credentials): Promise<{ success: boolean; data: { token: string; user: User } }> => {
-  const response = await apiClient.post<{ success: boolean; data: { token: string; user: User } }>("/auth/login", credentials);
+export const login = async (credentials: Credentials): Promise<{ success: boolean; user: User }> => {
+  const response = await apiClient.post<{ success: boolean; user: User }>("/auth/login", credentials);
   return response.data;
 };
 
 export const logout = async (): Promise<void> => {
-  await apiClient.get("/auth/logout");
+  await apiClient.post("/auth/logout");
+};
+
+export const getProfile = async (): Promise<{ success: boolean; user: User }> => {
+  const response = await apiClient.get<{ success: boolean; user: User }>("/auth/profile");
+  return response.data;
 };
 
 // Contractors API

@@ -1,5 +1,13 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
-import { login, logout } from '../api/apiService';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import type { ReactNode } from 'react';
+import { login as apiLogin, logout as apiLogout, getProfile } from '../api/apiService';
 
 interface User {
   _id: string;
@@ -11,12 +19,14 @@ interface User {
 
 interface UserContextType {
   user: User | null;
-  token: string | null;
-  handleLogin: (credentials: { email: string, password: string }) => Promise<void>;
+  isAuthenticated: boolean;
+  isInitializing: boolean;
+  isLoading: boolean;
+  error: string | null;
+  handleLogin: (credentials: { email: string; password: string }) => Promise<void>;
   handleLogout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
-
-const USER_STORAGE_KEY = 'auth_user';
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -29,52 +39,84 @@ export const useUser = (): UserContextType => {
 };
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Rehydrate session from cookie on app load
+  const refreshProfile = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const stored = localStorage.getItem(USER_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
+      const data = await getProfile();
+      setUser(data?.user ?? null);
     } catch {
-      return null;
-    }
-  });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('auth_token'));
-
-  const handleLogin = async (credentials: { email: string, password: string }) => {
-    const data: any = await login(credentials);
-    const { token: authToken, user: authUser } = data.data ?? {};
-
-    if (!authToken || !authUser) {
-      throw new Error(
-        data.data?.requiresTwoFactor
-          ? 'Two-factor authentication is not supported in this app'
-          : 'Login failed — unexpected response from server'
-      );
-    }
-
-    localStorage.setItem('auth_token', authToken);
-    localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(authUser));
-    setUser(authUser);
-    setToken(authToken);
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Error logging out user', error);
-    } finally {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem(USER_STORAGE_KEY);
       setUser(null);
-      setToken(null);
+      // 401 is expected when not logged in — suppress error
+    } finally {
+      setIsLoading(false);
+      setIsInitializing(false);
     }
-  };
+  }, []);
 
-  return (
-    <UserContext.Provider value={{ user, token, handleLogin, handleLogout }} >
-      {children}
-    </UserContext.Provider>
+  useEffect(() => {
+    refreshProfile();
+  }, [refreshProfile]);
+
+  // Clear user state when any API call returns 401
+  useEffect(() => {
+    const handleUnauthorized = () => setUser(null);
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+  }, []);
+
+  const handleLogin = useCallback(async (credentials: { email: string; password: string }) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await apiLogin(credentials);
+      if (!data?.user) throw new Error('Login failed — unexpected response from server');
+      setUser(data.user);
+    } catch (err: any) {
+      const message = err?.message || 'Login failed';
+      setError(message);
+      setUser(null);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const handleLogout = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      await apiLogout();
+    } catch (err: any) {
+      const message = err?.message || 'Logout failed';
+      setError(message);
+    } finally {
+      setUser(null);
+      setIsLoading(false);
+    }
+  }, []);
+
+  const value = useMemo<UserContextType>(
+    () => ({
+      user,
+      isAuthenticated: Boolean(user),
+      isInitializing,
+      isLoading,
+      error,
+      handleLogin,
+      handleLogout,
+      refreshProfile,
+    }),
+    [user, isInitializing, isLoading, error, handleLogin, handleLogout, refreshProfile]
   );
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 };
 
 export default UserContext;

@@ -7,14 +7,18 @@ interface AuthRouteProps extends RouteProps {
 }
 
 const ProtectedRoute: React.FC<AuthRouteProps> = ({ component: Component, ...rest }) => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isInitializing } = useAuth();
 
   return (
     <Route
       {...rest}
-      render={(props) =>
-        isAuthenticated ? <Component {...props} /> : <Redirect to="/login" />
-      }
+      render={(props) => {
+        if (isInitializing) {
+          // Don't redirect until we've tried to rehydrate session from cookie
+          return null;
+        }
+        return isAuthenticated ? <Component {...props} /> : <Redirect to="/login" />;
+      }}
     />
   );
 }
