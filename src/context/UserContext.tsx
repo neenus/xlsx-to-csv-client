@@ -8,14 +8,7 @@ import React, {
 } from 'react';
 import type { ReactNode } from 'react';
 import { login as apiLogin, logout as apiLogout, getProfile } from '../api/apiService';
-
-interface User {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  role: string;
-}
+import type { User } from '../types';
 
 interface UserContextType {
   user: User | null;

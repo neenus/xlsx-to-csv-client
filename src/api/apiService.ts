@@ -1,15 +1,9 @@
 import axios from 'axios';
-import { Contractor, Service } from '../types';
+import { Contractor, Service, User } from '../types';
 
 interface Credentials {
   email: string;
   password: string;
-};
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
 };
 
 const baseURL: string =

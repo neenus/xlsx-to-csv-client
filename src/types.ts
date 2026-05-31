@@ -1,3 +1,11 @@
+export interface User {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+}
+
 export interface Contractor {
   _id?: string;
   contractor_name: string;
