@@ -142,7 +142,8 @@ export default function UploadForm() {
 
     try {
       const response = await axios.post(baseUrl, formData, {
-        headers: { "Content-Type": "multipart/form-data" }
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true
       });
       setLoading(false);
       notify({ message: "File uploaded & converted successfully.", type: "success" });
